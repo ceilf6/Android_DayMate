@@ -45,4 +45,7 @@ interface EventDao {
     
     @Query("DELETE FROM events WHERE recurrenceId = :recurrenceId")
     suspend fun deleteRecurringEvents(recurrenceId: Long)
+    
+    @Query("SELECT * FROM events WHERE reminderMinutes IS NOT NULL AND startTime > :currentTime ORDER BY startTime ASC")
+    suspend fun getEventsWithReminders(currentTime: LocalDateTime): List<Event>
 }

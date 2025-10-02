@@ -7,9 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.daymate.MainActivity
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.PermissionManager
 import java.time.format.DateTimeFormatter
 
 class ReminderNotificationService(private val context: Context) {
@@ -45,6 +47,11 @@ class ReminderNotificationService(private val context: Context) {
     }
     
     fun showReminderNotification(event: Event, reminderMinutes: Int) {
+        // 检查是否有通知权限
+        if (!PermissionManager.hasNotificationPermission(context)) {
+            return
+        }
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("event_id", event.id)
@@ -75,26 +82,40 @@ class ReminderNotificationService(private val context: Context) {
             else -> "${reminderMinutes}分钟后开始"
         }
         
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(event.title)
-            .setContentText("$timeText - $reminderText")
-            .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("${event.description ?: ""}\n\n时间：$timeText\n${if (!event.location.isNullOrEmpty()) "地点：${event.location}\n" else ""}提醒：$reminderText"))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-        
-        notificationManager.notify((NOTIFICATION_ID_PREFIX + event.id).toInt(), notification)
+        try {
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(event.title)
+                .setContentText("$timeText - $reminderText")
+                .setStyle(NotificationCompat.BigTextStyle()
+                    .bigText("${event.description ?: ""}\n\n时间：$timeText\n${if (!event.location.isNullOrEmpty()) "地点：${event.location}\n" else ""}提醒：$reminderText"))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
+            
+            val notificationManagerCompat = NotificationManagerCompat.from(context)
+            notificationManagerCompat.notify((NOTIFICATION_ID_PREFIX + event.id).toInt(), notification)
+        } catch (e: SecurityException) {
+            // 处理没有通知权限的情况
+            e.printStackTrace()
+        }
     }
     
     fun cancelReminderNotification(eventId: Long) {
-        notificationManager.cancel((NOTIFICATION_ID_PREFIX + eventId).toInt())
+        try {
+            notificationManager.cancel((NOTIFICATION_ID_PREFIX + eventId).toInt())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
     
     fun cancelAllReminderNotifications() {
-        notificationManager.cancelAll()
+        try {
+            notificationManager.cancelAll()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
