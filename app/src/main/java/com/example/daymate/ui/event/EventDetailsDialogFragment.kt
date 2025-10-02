@@ -8,9 +8,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.example.daymate.R
+import com.example.daymate.data.CalendarDatabase
 import com.example.daymate.data.Event
 import com.example.daymate.databinding.DialogEventDetailsBinding
+import com.example.daymate.repository.EventRepository
 import com.example.daymate.viewmodel.CalendarViewModel
+import com.example.daymate.viewmodel.CalendarViewModelFactory
 import java.time.format.DateTimeFormatter
 
 class EventDetailsDialogFragment : DialogFragment() {
@@ -18,7 +21,11 @@ class EventDetailsDialogFragment : DialogFragment() {
     private var _binding: DialogEventDetailsBinding? = null
     private val binding get() = _binding!!
     
-    private val viewModel: CalendarViewModel by viewModels()
+    private val viewModel: CalendarViewModel by viewModels {
+        val database = CalendarDatabase.getDatabase(requireContext())
+        val repository = EventRepository(database.eventDao())
+        CalendarViewModelFactory(repository, requireContext())
+    }
     
     private lateinit var event: Event
     
@@ -37,6 +44,7 @@ class EventDetailsDialogFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
+            @Suppress("DEPRECATION")
             event = it.getSerializable(ARG_EVENT) as Event
         }
     }

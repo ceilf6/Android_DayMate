@@ -10,11 +10,14 @@ import android.widget.ArrayAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.example.daymate.R
+import com.example.daymate.data.CalendarDatabase
 import com.example.daymate.data.Event
 import com.example.daymate.data.EventStatus
 import com.example.daymate.data.Transparency
 import com.example.daymate.databinding.DialogAddEditEventBinding
+import com.example.daymate.repository.EventRepository
 import com.example.daymate.viewmodel.CalendarViewModel
+import com.example.daymate.viewmodel.CalendarViewModelFactory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -24,7 +27,11 @@ class AddEditEventDialogFragment : DialogFragment() {
     private var _binding: DialogAddEditEventBinding? = null
     private val binding get() = _binding!!
     
-    private val viewModel: CalendarViewModel by viewModels()
+    private val viewModel: CalendarViewModel by viewModels {
+        val database = CalendarDatabase.getDatabase(requireContext())
+        val repository = EventRepository(database.eventDao())
+        CalendarViewModelFactory(repository, requireContext())
+    }
     
     private var event: Event? = null
     private var selectedStartDateTime: LocalDateTime = LocalDateTime.now()
@@ -47,9 +54,14 @@ class AddEditEventDialogFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
+            @Suppress("DEPRECATION")
             event = it.getSerializable(ARG_EVENT) as? Event
-            selectedStartDateTime = it.getSerializable(ARG_SELECTED_DATE_TIME) as? LocalDateTime ?: LocalDateTime.now()
-            selectedEndDateTime = selectedStartDateTime.plusHours(1)
+            @Suppress("DEPRECATION")
+            val dateTime = it.getSerializable(ARG_SELECTED_DATE_TIME) as? LocalDateTime
+            dateTime?.let { dt ->
+                selectedStartDateTime = dt
+                selectedEndDateTime = dt.plusHours(1)
+            }
         }
     }
     
