@@ -43,6 +43,7 @@ class WeekView @JvmOverloads constructor(
     var onDateSelected: ((LocalDate) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
     var onTimeSlotClicked: ((LocalDateTime) -> Unit)? = null
+    var onWeekChanged: ((LocalDate) -> Unit)? = null
     
     init {
         paint.textAlign = Paint.Align.CENTER
@@ -245,6 +246,11 @@ class WeekView @JvmOverloads constructor(
         invalidate()
     }
     
+    fun setWeekStartDateProgrammatically(date: LocalDate) {
+        weekStartDate = date.minusDays(date.dayOfWeek.value.toLong() - 1)
+        invalidate()
+    }
+    
     fun setSelectedDate(date: LocalDate?) {
         selectedDate = date
         invalidate()
@@ -259,11 +265,13 @@ class WeekView @JvmOverloads constructor(
     
     fun previousWeek() {
         weekStartDate = weekStartDate.minusWeeks(1)
+        onWeekChanged?.invoke(weekStartDate)
         invalidate()
     }
     
     fun nextWeek() {
         weekStartDate = weekStartDate.plusWeeks(1)
+        onWeekChanged?.invoke(weekStartDate)
         invalidate()
     }
 }

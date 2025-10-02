@@ -71,17 +71,35 @@ class CalendarFragment : Fragment() {
         // 设置导航按钮
         binding.btnPrevious.setOnClickListener {
             when (viewModel.viewMode.value) {
-                CalendarViewMode.MONTH -> binding.monthView.previousMonth()
-                CalendarViewMode.WEEK -> binding.weekView.previousWeek()
-                CalendarViewMode.DAY -> binding.dayView.previousDay()
+                CalendarViewMode.MONTH -> {
+                    binding.monthView.previousMonth()
+                    // 日期显示会通过onMonthChanged回调自动更新
+                }
+                CalendarViewMode.WEEK -> {
+                    binding.weekView.previousWeek()
+                    // 日期显示会通过onWeekChanged回调自动更新
+                }
+                CalendarViewMode.DAY -> {
+                    binding.dayView.previousDay()
+                    // 日期显示会通过onDayChanged回调自动更新
+                }
             }
         }
         
         binding.btnNext.setOnClickListener {
             when (viewModel.viewMode.value) {
-                CalendarViewMode.MONTH -> binding.monthView.nextMonth()
-                CalendarViewMode.WEEK -> binding.weekView.nextWeek()
-                CalendarViewMode.DAY -> binding.dayView.nextDay()
+                CalendarViewMode.MONTH -> {
+                    binding.monthView.nextMonth()
+                    // 日期显示会通过onMonthChanged回调自动更新
+                }
+                CalendarViewMode.WEEK -> {
+                    binding.weekView.nextWeek()
+                    // 日期显示会通过onWeekChanged回调自动更新
+                }
+                CalendarViewMode.DAY -> {
+                    binding.dayView.nextDay()
+                    // 日期显示会通过onDayChanged回调自动更新
+                }
             }
         }
         
@@ -107,6 +125,9 @@ class CalendarFragment : Fragment() {
         binding.monthView.onDateSelected = { date ->
             viewModel.setSelectedDate(date.atStartOfDay())
         }
+        binding.monthView.onMonthChanged = { yearMonth ->
+            updateDateDisplayForMonth(yearMonth)
+        }
         
         // 周视图回调
         binding.weekView.onDateSelected = { date ->
@@ -114,20 +135,23 @@ class CalendarFragment : Fragment() {
         }
         binding.weekView.onTimeSlotClicked = { dateTime ->
             viewModel.setSelectedDate(dateTime)
-            // TODO: 打开添加事件对话框
             showAddEventDialog(dateTime)
+        }
+        binding.weekView.onWeekChanged = { weekStartDate ->
+            updateDateDisplayForWeek(weekStartDate)
         }
         
         // 日视图回调
         binding.dayView.onTimeSlotClicked = { dateTime ->
             viewModel.setSelectedDate(dateTime)
-            // TODO: 打开添加事件对话框
             showAddEventDialog(dateTime)
         }
         binding.dayView.onEventClicked = { event ->
             viewModel.selectEvent(event)
-            // TODO: 打开事件详情对话框
             showEventDetailsDialog(event)
+        }
+        binding.dayView.onDayChanged = { date ->
+            updateDateDisplayForDay(date)
         }
     }
     
@@ -157,25 +181,31 @@ class CalendarFragment : Fragment() {
         binding.weekView.visibility = View.GONE
         binding.dayView.visibility = View.GONE
         
-        // 显示对应视图
+        // 显示对应视图并更新日期显示
         when (mode) {
             CalendarViewMode.MONTH -> {
                 binding.monthView.visibility = View.VISIBLE
                 binding.btnMonthView.isSelected = true
                 binding.btnWeekView.isSelected = false
                 binding.btnDayView.isSelected = false
+                // 立即更新月视图的日期显示
+                updateDateDisplayForMonth(binding.monthView.getCurrentYearMonth())
             }
             CalendarViewMode.WEEK -> {
                 binding.weekView.visibility = View.VISIBLE
                 binding.btnMonthView.isSelected = false
                 binding.btnWeekView.isSelected = true
                 binding.btnDayView.isSelected = false
+                // 立即更新周视图的日期显示
+                updateDateDisplayForWeek(binding.weekView.getCurrentWeekStartDate())
             }
             CalendarViewMode.DAY -> {
                 binding.dayView.visibility = View.VISIBLE
                 binding.btnMonthView.isSelected = false
                 binding.btnWeekView.isSelected = false
                 binding.btnDayView.isSelected = true
+                // 立即更新日视图的日期显示
+                updateDateDisplayForDay(binding.dayView.getCurrentDate())
             }
         }
     }
@@ -186,19 +216,19 @@ class CalendarFragment : Fragment() {
         when (viewModel.viewMode.value) {
             CalendarViewMode.MONTH -> {
                 val yearMonth = YearMonth.from(date)
-                binding.monthView.setYearMonth(yearMonth)
+                binding.monthView.setYearMonthProgrammatically(yearMonth)
                 binding.monthView.setSelectedDate(date)
                 binding.tvCurrentDate.text = yearMonth.format(dateFormatter)
             }
             CalendarViewMode.WEEK -> {
-                binding.weekView.setWeekStartDate(date)
+                binding.weekView.setWeekStartDateProgrammatically(date)
                 binding.weekView.setSelectedDate(date)
                 val weekStart = binding.weekView.getCurrentWeekStartDate()
                 val weekEnd = weekStart.plusDays(6)
                 binding.tvCurrentDate.text = "${weekStart.monthValue}/${weekStart.dayOfMonth} - ${weekEnd.monthValue}/${weekEnd.dayOfMonth}"
             }
             CalendarViewMode.DAY -> {
-                binding.dayView.setSelectedDate(date)
+                binding.dayView.setSelectedDateProgrammatically(date)
                 binding.tvCurrentDate.text = date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE"))
             }
         }
@@ -214,6 +244,19 @@ class CalendarFragment : Fragment() {
             event.startTime.toLocalDate() == selectedDate
         }
         binding.dayView.setEvents(todayEvents)
+    }
+    
+    private fun updateDateDisplayForMonth(yearMonth: YearMonth) {
+        binding.tvCurrentDate.text = yearMonth.format(dateFormatter)
+    }
+    
+    private fun updateDateDisplayForWeek(weekStartDate: LocalDate) {
+        val weekEndDate = weekStartDate.plusDays(6)
+        binding.tvCurrentDate.text = "${weekStartDate.monthValue}/${weekStartDate.dayOfMonth} - ${weekEndDate.monthValue}/${weekEndDate.dayOfMonth}"
+    }
+    
+    private fun updateDateDisplayForDay(date: LocalDate) {
+        binding.tvCurrentDate.text = date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE"))
     }
     
     private fun showAddEventDialog(selectedDateTime: LocalDateTime? = null) {

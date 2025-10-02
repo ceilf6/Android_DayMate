@@ -41,6 +41,7 @@ class MonthView @JvmOverloads constructor(
     
     var onDateSelected: ((LocalDate) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
+    var onMonthChanged: ((YearMonth) -> Unit)? = null
     
     init {
         paint.textAlign = Paint.Align.CENTER
@@ -284,6 +285,11 @@ class MonthView @JvmOverloads constructor(
         invalidate()
     }
     
+    fun setYearMonthProgrammatically(yearMonth: YearMonth) {
+        this.yearMonth = yearMonth
+        invalidate()
+    }
+    
     fun setSelectedDate(date: LocalDate?) {
         this.selectedDate = date
         invalidate()
@@ -298,11 +304,13 @@ class MonthView @JvmOverloads constructor(
     
     fun previousMonth() {
         yearMonth = yearMonth.minusMonths(1)
+        onMonthChanged?.invoke(yearMonth)
         invalidate()
     }
     
     fun nextMonth() {
         yearMonth = yearMonth.plusMonths(1)
+        onMonthChanged?.invoke(yearMonth)
         invalidate()
     }
 }

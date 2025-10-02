@@ -41,6 +41,7 @@ class DayView @JvmOverloads constructor(
     
     var onTimeSlotClicked: ((LocalDateTime) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
+    var onDayChanged: ((LocalDate) -> Unit)? = null
     
     init {
         paint.textAlign = Paint.Align.CENTER
@@ -264,6 +265,11 @@ class DayView @JvmOverloads constructor(
         invalidate()
     }
     
+    fun setSelectedDateProgrammatically(date: LocalDate) {
+        selectedDate = date
+        invalidate()
+    }
+    
     fun setEvents(events: List<Event>) {
         this.events = events
         invalidate()
@@ -273,11 +279,13 @@ class DayView @JvmOverloads constructor(
     
     fun previousDay() {
         selectedDate = selectedDate.minusDays(1)
+        onDayChanged?.invoke(selectedDate)
         invalidate()
     }
     
     fun nextDay() {
         selectedDate = selectedDate.plusDays(1)
+        onDayChanged?.invoke(selectedDate)
         invalidate()
     }
 }
