@@ -11,6 +11,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.PriorityColorUtils
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -193,20 +194,83 @@ class WeekView @JvmOverloads constructor(
             (eventY + eventHeight).toInt()
         )
         
+        // 根据优先级获取颜色
+        val (backgroundColor, borderColor, isDarkTheme) = PriorityColorUtils.getPriorityColors(context, event.priority)
+        
         // 绘制事件背景
-        paint.color = ContextCompat.getColor(context, R.color.primary)
+        paint.color = backgroundColor
+        paint.style = Paint.Style.FILL
         canvas.drawRect(cellRect, paint)
         
+        // 绘制优先级条纹 (左侧彩色条)
+        val stripeWidth = 6f
+        paint.color = borderColor
+        canvas.drawRect(
+            cellRect.left.toFloat(),
+            cellRect.top.toFloat(),
+            cellRect.left + stripeWidth,
+            cellRect.bottom.toFloat(),
+            paint
+        )
+        
+        // 绘制事件边框
+        paint.color = borderColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = if (event.priority in 1..3) 3f else 2f
+        canvas.drawRect(cellRect, paint)
+        paint.style = Paint.Style.FILL
+        
+        // 添加阴影效果 (高优先级)
+        if (event.priority in 1..3) {
+            paint.color = ContextCompat.getColor(context, android.R.color.black)
+            paint.alpha = 30
+            canvas.drawRect(
+                cellRect.left + 3f,
+                cellRect.top + 3f,
+                cellRect.right + 3f,
+                cellRect.bottom + 3f,
+                paint
+            )
+            paint.alpha = 255
+        }
+        
         // 绘制事件文字
-        paint.color = ContextCompat.getColor(context, android.R.color.white)
-        paint.textSize = eventTextSize
+        paint.color = if (isDarkTheme) {
+            ContextCompat.getColor(context, android.R.color.white)
+        } else {
+            ContextCompat.getColor(context, R.color.primary_text)
+        }
+        
+        // 绘制优先级指示器
+        if (event.priority > 0 && eventHeight > 40f) {
+            val priorityText = PriorityColorUtils.getPriorityIndicator(event.priority)
+            
+            if (priorityText.isNotEmpty()) {
+                paint.textSize = 24f
+                paint.color = borderColor
+                canvas.drawText(
+                    priorityText,
+                    cellRect.right - 20f,
+                    cellRect.top + 20f,
+                    paint
+                )
+            }
+        }
+        
+        // 绘制标题
+        paint.textSize = if (event.priority in 1..3) eventTextSize + 2f else eventTextSize
+        paint.color = if (isDarkTheme) {
+            ContextCompat.getColor(context, android.R.color.white)
+        } else {
+            ContextCompat.getColor(context, R.color.primary_text)
+        }
         
         val title = if (event.title.length > 15) {
             event.title.substring(0, 15) + "..."
         } else {
             event.title
         }
-        
+
         canvas.drawText(
             title,
             cellRect.centerX().toFloat(),

@@ -11,6 +11,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.PriorityColorUtils
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -201,21 +202,77 @@ class MonthView @JvmOverloads constructor(
                 val x = padding + col * cellWidth
                 val y = padding + row * cellHeight
                 
-                // 绘制事件指示点
-                val eventX = x + cellWidth - 20f
-                val eventY = y + 10f
+                // 按优先级排序事件，高优先级在前
+                val sortedEvents = dayEvents.sortedBy { 
+                    when {
+                        it.priority == 0 -> 10  // 无优先级排在最后
+                        else -> it.priority     // 优先级1最高，排在最前
+                    }
+                }
                 
-                paint.color = ContextCompat.getColor(context, R.color.accent)
-                canvas.drawCircle(eventX, eventY, 8f, paint)
+                // 绘制最多3个事件指示器
+                val maxIndicators = minOf(3, sortedEvents.size)
+                for (i in 0 until maxIndicators) {
+                    val event = sortedEvents[i]
+                    val (backgroundColor, borderColor, _) = PriorityColorUtils.getPriorityColors(context, event.priority)
+                    
+                    val indicatorX = x + cellWidth - 25f - (i * 15f)
+                    val indicatorY = y + 15f + (i * 8f)
+                    
+                    // 绘制事件指示器背景
+                    paint.color = backgroundColor
+                    paint.style = Paint.Style.FILL
+                    canvas.drawCircle(indicatorX, indicatorY, 8f, paint)
+                    
+                    // 绘制边框
+                    paint.color = borderColor
+                    paint.style = Paint.Style.STROKE
+                    paint.strokeWidth = if (event.priority in 1..3) 2f else 1f
+                    canvas.drawCircle(indicatorX, indicatorY, 8f, paint)
+                    paint.style = Paint.Style.FILL
+                    
+                    // 高优先级添加内部标记
+                    if (event.priority in 1..3) {
+                        paint.color = ContextCompat.getColor(context, android.R.color.white)
+                        canvas.drawCircle(indicatorX, indicatorY, 3f, paint)
+                    }
+                }
                 
-                // 如果有多个事件，绘制数字
-                if (dayEvents.size > 1) {
+                // 如果有超过3个事件，显示总数
+                if (dayEvents.size > 3) {
+                    val totalX = x + cellWidth - 15f
+                    val totalY = y + cellHeight - 15f
+                    
+                    // 绘制数字背景
+                    paint.color = ContextCompat.getColor(context, R.color.primary)
+                    canvas.drawCircle(totalX, totalY, 12f, paint)
+                    
+                    // 绘制总数
                     paint.color = ContextCompat.getColor(context, android.R.color.white)
-                    paint.textSize = 24f
+                    paint.textSize = 20f
                     canvas.drawText(
                         dayEvents.size.toString(),
-                        eventX,
-                        eventY + paint.textSize / 3,
+                        totalX,
+                        totalY + paint.textSize / 3,
+                        paint
+                    )
+                }
+                
+                // 在日期下方显示高优先级事件的简短标题
+                val highPriorityEvents = sortedEvents.filter { it.priority in 1..3 }
+                if (highPriorityEvents.isNotEmpty()) {
+                    paint.textSize = 20f
+                    paint.color = ContextCompat.getColor(context, R.color.priority_high)
+                    val title = if (highPriorityEvents[0].title.length > 8) {
+                        highPriorityEvents[0].title.substring(0, 8) + "..."
+                    } else {
+                        highPriorityEvents[0].title
+                    }
+                    
+                    canvas.drawText(
+                        title,
+                        x + cellWidth / 2,
+                        y + cellHeight - 8f,
                         paint
                     )
                 }

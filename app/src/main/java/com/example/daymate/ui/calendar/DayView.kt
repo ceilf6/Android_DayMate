@@ -11,6 +11,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.PriorityColorUtils
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -147,19 +148,52 @@ class DayView @JvmOverloads constructor(
             (eventY + eventHeight).toInt()
         )
         
+        // 根据优先级获取颜色
+        val (backgroundColor, borderColor, isDarkTheme) = PriorityColorUtils.getPriorityColors(context, event.priority)
+        
         // 绘制事件背景
-        paint.color = ContextCompat.getColor(context, R.color.primary)
+        paint.color = backgroundColor
+        paint.style = Paint.Style.FILL
         canvas.drawRect(cellRect, paint)
         
+        // 绘制优先级条纹 (左侧彩色条)
+        val stripeWidth = 8f
+        paint.color = borderColor
+        canvas.drawRect(
+            cellRect.left.toFloat(),
+            cellRect.top.toFloat(),
+            cellRect.left + stripeWidth,
+            cellRect.bottom.toFloat(),
+            paint
+        )
+        
         // 绘制事件边框
-        paint.color = ContextCompat.getColor(context, R.color.primary_dark)
+        paint.color = borderColor
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2f
+        paint.strokeWidth = if (event.priority in 1..3) 3f else 2f // 高优先级边框更粗
         canvas.drawRect(cellRect, paint)
         paint.style = Paint.Style.FILL
         
+        // 添加阴影效果 (高优先级)
+        if (event.priority in 1..3) {
+            paint.color = ContextCompat.getColor(context, android.R.color.black)
+            paint.alpha = 30
+            canvas.drawRect(
+                cellRect.left + 4f,
+                cellRect.top + 4f,
+                cellRect.right + 4f,
+                cellRect.bottom + 4f,
+                paint
+            )
+            paint.alpha = 255
+        }
+        
         // 绘制事件文字
-        paint.color = ContextCompat.getColor(context, android.R.color.white)
+        paint.color = if (isDarkTheme) {
+            ContextCompat.getColor(context, android.R.color.white)
+        } else {
+            ContextCompat.getColor(context, R.color.primary_text)
+        }
         paint.textSize = eventTextSize
         
         val timeText = "${String.format("%02d:%02d", event.startTime.hour, event.startTime.minute)} - " +
@@ -171,6 +205,23 @@ class DayView @JvmOverloads constructor(
             event.title
         }
         
+        // 绘制优先级指示器
+        if (event.priority > 0) {
+            val priorityText = PriorityColorUtils.getPriorityIndicator(event.priority)
+            
+            if (priorityText.isNotEmpty()) {
+                paint.textSize = 28f
+                paint.color = borderColor
+                canvas.drawText(
+                    priorityText,
+                    cellRect.right - 30f,
+                    cellRect.top + 30f,
+                    paint
+                )
+                paint.textSize = eventTextSize
+            }
+        }
+        
         // 绘制时间
         canvas.drawText(
             timeText,
@@ -180,6 +231,7 @@ class DayView @JvmOverloads constructor(
         )
         
         // 绘制标题
+        paint.textSize = if (event.priority in 1..3) eventTextSize + 4f else eventTextSize
         canvas.drawText(
             title,
             cellRect.centerX().toFloat(),

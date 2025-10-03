@@ -16,6 +16,7 @@ import com.example.daymate.data.EventStatus
 import com.example.daymate.data.Transparency
 import com.example.daymate.databinding.DialogAddEditEventBinding
 import com.example.daymate.repository.EventRepository
+import com.example.daymate.utils.PriorityColorUtils
 import com.example.daymate.viewmodel.CalendarViewModel
 import com.example.daymate.viewmodel.CalendarViewModelFactory
 import java.time.LocalDateTime
@@ -89,6 +90,14 @@ class AddEditEventDialogFragment : DialogFragment() {
         priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerPriority.adapter = priorityAdapter
         
+        // 为优先级选择器添加监听器，实时预览颜色
+        binding.spinnerPriority.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                updatePriorityPreview(position)
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        })
+        
         // 设置状态下拉菜单
         val statuses = arrayOf("已确认", "暂定", "已取消")
         val statusAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, statuses)
@@ -110,6 +119,9 @@ class AddEditEventDialogFragment : DialogFragment() {
         // 设置对话框标题
         binding.tvDialogTitle.text = if (event != null) "编辑事件" else "添加事件"
         binding.btnSave.text = if (event != null) "更新" else "保存"
+        
+        // 初始化优先级预览 (默认为"未设置")
+        updatePriorityPreview(0)
     }
     
     private fun setupClickListeners() {
@@ -185,12 +197,14 @@ class AddEditEventDialogFragment : DialogFragment() {
             binding.switchAllDay.isChecked = event.allDay
             
             // 设置优先级
-            binding.spinnerPriority.setSelection(when (event.priority) {
-                1 -> 1 // 高
-                5 -> 2 // 中
-                9 -> 3 // 低
+            val prioritySelection = when (event.priority) {
+                in 1..3 -> 1 // 高
+                in 4..6 -> 2 // 中
+                in 7..9 -> 3 // 低
                 else -> 0 // 未设置
-            })
+            }
+            binding.spinnerPriority.setSelection(prioritySelection)
+            updatePriorityPreview(prioritySelection)
             
             // 设置状态
             binding.spinnerStatus.setSelection(when (event.status) {
@@ -271,9 +285,9 @@ class AddEditEventDialogFragment : DialogFragment() {
         val allDay = binding.switchAllDay.isChecked
         
         val priority = when (binding.spinnerPriority.selectedItemPosition) {
-            1 -> 1 // 高
-            2 -> 5 // 中
-            3 -> 9 // 低
+            1 -> 2 // 高 (使用1-3范围内的中值)
+            2 -> 5 // 中 (使用4-6范围内的中值)
+            3 -> 8 // 低 (使用7-9范围内的中值)
             else -> 0 // 未设置
         }
         
@@ -338,6 +352,20 @@ class AddEditEventDialogFragment : DialogFragment() {
         }
         
         dismiss()
+    }
+    
+    private fun updatePriorityPreview(priorityPosition: Int) {
+        val priority = when (priorityPosition) {
+            1 -> 2 // 高
+            2 -> 5 // 中  
+            3 -> 8 // 低
+            else -> 0 // 未设置
+        }
+        
+        val colorRes = PriorityColorUtils.getPriorityColorRes(priority)
+        binding.viewPriorityPreview.setBackgroundColor(
+            androidx.core.content.ContextCompat.getColor(requireContext(), colorRes)
+        )
     }
     
     override fun onDestroyView() {

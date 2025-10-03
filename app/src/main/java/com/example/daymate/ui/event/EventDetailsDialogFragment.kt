@@ -12,6 +12,7 @@ import com.example.daymate.data.CalendarDatabase
 import com.example.daymate.data.Event
 import com.example.daymate.databinding.DialogEventDetailsBinding
 import com.example.daymate.repository.EventRepository
+import com.example.daymate.utils.PriorityColorUtils
 import com.example.daymate.viewmodel.CalendarViewModel
 import com.example.daymate.viewmodel.CalendarViewModelFactory
 import java.time.format.DateTimeFormatter
@@ -139,13 +140,31 @@ class EventDetailsDialogFragment : DialogFragment() {
         }
         
         // 优先级
-        val priorityText = when (event.priority) {
-            1 -> "高"
-            5 -> "中"
-            9 -> "低"
-            else -> "未设置"
-        }
+        val priorityText = PriorityColorUtils.getPriorityText(event.priority)
         binding.tvPriority.text = priorityText
+        
+        // 设置优先级视觉指示器
+        val colorRes = PriorityColorUtils.getPriorityColorRes(event.priority)
+        
+        // 设置优先级指示器背景色
+        val priorityIndicator = binding.viewPriorityIndicator
+        priorityIndicator.setBackgroundResource(colorRes)
+        
+        // 设置优先级符号
+        val prioritySymbol = PriorityColorUtils.getPriorityIndicator(event.priority)
+        
+        if (prioritySymbol.isNotEmpty()) {
+            binding.tvPrioritySymbol.text = prioritySymbol
+            binding.tvPrioritySymbol.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), colorRes))
+            binding.tvPrioritySymbol.visibility = View.VISIBLE
+        } else {
+            binding.tvPrioritySymbol.visibility = View.GONE
+        }
+        
+        // 为高优先级事件的标题添加强调色
+        if (event.priority in 1..3) {
+            binding.tvEventTitle.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.priority_high))
+        }
         
         // 状态
         val statusText = when (event.status) {

@@ -192,7 +192,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
 
             <TextView
                 android:layout_width="0dp"
@@ -201,6 +202,13 @@
                 android:text="优先级"
                 android:textColor="@color/primary_text"
                 android:textSize="16sp" />
+
+            <View
+                android:id="@+id/viewPriorityPreview"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/priority_indicator_background" />
 
             <Spinner
                 android:id="@+id/spinnerPriority"
