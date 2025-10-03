@@ -37,7 +37,7 @@ class DayView @JvmOverloads constructor(
     private var cellHeight = 0f
     private var hourHeight = 0f
     private val hourCount = 24
-    private val headerHeight = 80f
+    private val headerHeight = 0f
     
     var onTimeSlotClicked: ((LocalDateTime) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
@@ -57,25 +57,9 @@ class DayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        drawHeader(canvas)
         drawTimeGrid(canvas)
         drawEvents(canvas)
         drawTimeLabels(canvas)
-    }
-    
-    private fun drawHeader(canvas: Canvas) {
-        paint.textSize = 48f
-        paint.color = ContextCompat.getColor(context, R.color.primary_text)
-        
-        val formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE")
-        val dateText = selectedDate.format(formatter)
-        
-        canvas.drawText(
-            dateText,
-            width / 2f,
-            headerHeight / 2f + paint.textSize / 3,
-            paint
-        )
     }
     
     private fun drawTimeGrid(canvas: Canvas) {
