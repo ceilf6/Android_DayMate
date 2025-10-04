@@ -43,6 +43,7 @@ class MonthView @JvmOverloads constructor(
     var onDateSelected: ((LocalDate) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
     var onMonthChanged: ((YearMonth) -> Unit)? = null
+    var onDateDoubleClicked: ((LocalDate) -> Unit)? = null
     
     init {
         paint.textAlign = Paint.Align.CENTER
@@ -289,8 +290,21 @@ class MonthView @JvmOverloads constructor(
             val col = ((e.x - padding) / cellWidth).toInt()
             val row = ((e.y - padding) / cellHeight).toInt()
             
-            if (col in 0..6 && row in 0..6) {
-                handleCellClick(col, row)
+            // 第0行是星期头，第1-6行是日期
+            if (col in 0..6 && row in 1..6) {
+                handleCellClick(col, row - 1) // 减1因为我们的处理函数期望从0开始的行
+                return true
+            }
+            return false
+        }
+        
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            val col = ((e.x - padding) / cellWidth).toInt()
+            val row = ((e.y - padding) / cellHeight).toInt()
+            
+            // 第0行是星期头，第1-6行是日期
+            if (col in 0..6 && row in 1..6) {
+                handleCellDoubleClick(col, row - 1) // 减1因为我们的处理函数期望从0开始的行
                 return true
             }
             return false
@@ -333,6 +347,38 @@ class MonthView @JvmOverloads constructor(
                 onDateSelected?.invoke(date)
                 yearMonth = nextMonth
                 invalidate()
+            }
+        }
+    }
+    
+    private fun handleCellDoubleClick(col: Int, row: Int) {
+        val firstDayOfMonth = yearMonth.atDay(1)
+        val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
+        val daysInMonth = yearMonth.lengthOfMonth()
+        
+        val cellIndex = row * 7 + col
+        
+        when {
+            cellIndex < firstDayOfWeek -> {
+                // 上个月的日期
+                val prevMonth = yearMonth.minusMonths(1)
+                val daysInPrevMonth = prevMonth.lengthOfMonth()
+                val day = daysInPrevMonth - firstDayOfWeek + 1 + cellIndex
+                val date = prevMonth.atDay(day)
+                onDateDoubleClicked?.invoke(date)
+            }
+            cellIndex < firstDayOfWeek + daysInMonth -> {
+                // 当月的日期
+                val day = cellIndex - firstDayOfWeek + 1
+                val date = yearMonth.atDay(day)
+                onDateDoubleClicked?.invoke(date)
+            }
+            else -> {
+                // 下个月的日期
+                val nextMonth = yearMonth.plusMonths(1)
+                val day = cellIndex - firstDayOfWeek - daysInMonth + 1
+                val date = nextMonth.atDay(day)
+                onDateDoubleClicked?.invoke(date)
             }
         }
     }

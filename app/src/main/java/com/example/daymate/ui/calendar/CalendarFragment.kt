@@ -11,6 +11,7 @@ import com.example.daymate.R
 import com.example.daymate.data.CalendarDatabase
 import com.example.daymate.databinding.FragmentCalendarBinding
 import com.example.daymate.repository.EventRepository
+import com.example.daymate.ui.dialog.DailyEventsDialogFragment
 import com.example.daymate.ui.event.AddEditEventDialogFragment
 import com.example.daymate.ui.event.EventDetailsDialogFragment
 import com.example.daymate.ui.importexport.ImportExportDialogFragment
@@ -127,6 +128,9 @@ class CalendarFragment : Fragment() {
         }
         binding.monthView.onMonthChanged = { yearMonth ->
             updateDateDisplayForMonth(yearMonth)
+        }
+        binding.monthView.onDateDoubleClicked = { date ->
+            showDailyEventsDialog(date)
         }
         
         // 周视图回调
@@ -267,6 +271,18 @@ class CalendarFragment : Fragment() {
     private fun showEventDetailsDialog(event: com.example.daymate.data.Event) {
         val dialog = EventDetailsDialogFragment.newInstance(event)
         dialog.show(parentFragmentManager, "EventDetailsDialog")
+    }
+    
+    private fun showDailyEventsDialog(date: LocalDate) {
+        // 添加Toast来确认双击被检测到
+        android.widget.Toast.makeText(
+            requireContext(), 
+            "双击日期: ${date}", 
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+        
+        val dialog = DailyEventsDialogFragment.newInstance(date)
+        dialog.show(parentFragmentManager, "DailyEventsDialog")
     }
     
     private fun showImportExportDialog() {

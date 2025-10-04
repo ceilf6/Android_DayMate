@@ -19,6 +19,9 @@ class CalendarViewModel(
     
     private val reminderManager = ReminderManager(context)
     
+    // 公开repository，以便其他地方可以访问
+    val eventRepository: EventRepository = repository
+    
     private val _selectedDate = MutableStateFlow(LocalDateTime.now())
     val selectedDate: StateFlow<LocalDateTime> = _selectedDate.asStateFlow()
     
