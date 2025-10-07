@@ -46,7 +46,7 @@ class AddEditEventDialogFragment : DialogFragment() {
             val fragment = AddEditEventDialogFragment()
             val args = Bundle()
             event?.let { args.putSerializable(ARG_EVENT, it) }
-            selectedDateTime?.let { args.putSerializable(ARG_SELECTED_DATE_TIME, it) }
+            selectedDateTime?.let { args.putString(ARG_SELECTED_DATE_TIME, it.toString()) }
             fragment.arguments = args
             return fragment
         }
@@ -57,11 +57,11 @@ class AddEditEventDialogFragment : DialogFragment() {
         arguments?.let {
             @Suppress("DEPRECATION")
             event = it.getSerializable(ARG_EVENT) as? Event
-            @Suppress("DEPRECATION")
-            val dateTime = it.getSerializable(ARG_SELECTED_DATE_TIME) as? LocalDateTime
-            dateTime?.let { dt ->
-                selectedStartDateTime = dt
-                selectedEndDateTime = dt.plusHours(1)
+            val dateTimeString = it.getString(ARG_SELECTED_DATE_TIME)
+            dateTimeString?.let { dtStr ->
+                val dateTime = LocalDateTime.parse(dtStr)
+                selectedStartDateTime = dateTime
+                selectedEndDateTime = dateTime.plusHours(1)
             }
         }
     }

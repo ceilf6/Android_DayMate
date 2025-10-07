@@ -285,14 +285,12 @@ class MonthView @JvmOverloads constructor(
     }
     
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        android.util.Log.d("MonthView", "onTouchEvent: ${event.action}")
         val handled = gestureDetector.onTouchEvent(event)
         return handled || super.onTouchEvent(event)
     }
     
     private inner class MonthViewGestureListener : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            android.util.Log.d("MonthView", "onSingleTapUp")
             val col = ((e.x - padding) / cellWidth).toInt()
             val row = ((e.y - padding) / cellHeight).toInt()
             
@@ -305,17 +303,14 @@ class MonthView @JvmOverloads constructor(
         }
         
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            android.util.Log.d("MonthView", "onDoubleTap detected!")
             val col = ((e.x - padding) / cellWidth).toInt()
             val row = ((e.y - padding) / cellHeight).toInt()
             
             // 第0行是星期头，第1-6行是日期
             if (col in 0..6 && row in 1..6) {
-                android.util.Log.d("MonthView", "Valid double tap at col=$col, row=$row")
                 handleCellDoubleClick(col, row - 1) // 减1因为我们的处理函数期望从0开始的行
                 return true
             }
-            android.util.Log.d("MonthView", "Invalid double tap position col=$col, row=$row")
             return false
         }
     }
@@ -361,7 +356,6 @@ class MonthView @JvmOverloads constructor(
     }
     
     private fun handleCellDoubleClick(col: Int, row: Int) {
-        android.util.Log.d("MonthView", "handleCellDoubleClick: col=$col, row=$row")
         val firstDayOfMonth = yearMonth.atDay(1)
         val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
         val daysInMonth = yearMonth.lengthOfMonth()
@@ -375,14 +369,12 @@ class MonthView @JvmOverloads constructor(
                 val daysInPrevMonth = prevMonth.lengthOfMonth()
                 val day = daysInPrevMonth - firstDayOfWeek + 1 + cellIndex
                 val date = prevMonth.atDay(day)
-                android.util.Log.d("MonthView", "Double clicked prev month date: $date")
                 onDateDoubleClicked?.invoke(date)
             }
             cellIndex < firstDayOfWeek + daysInMonth -> {
                 // 当月的日期
                 val day = cellIndex - firstDayOfWeek + 1
                 val date = yearMonth.atDay(day)
-                android.util.Log.d("MonthView", "Double clicked current month date: $date")
                 onDateDoubleClicked?.invoke(date)
             }
             else -> {
@@ -390,7 +382,6 @@ class MonthView @JvmOverloads constructor(
                 val nextMonth = yearMonth.plusMonths(1)
                 val day = cellIndex - firstDayOfWeek - daysInMonth + 1
                 val date = nextMonth.atDay(day)
-                android.util.Log.d("MonthView", "Double clicked next month date: $date")
                 onDateDoubleClicked?.invoke(date)
             }
         }

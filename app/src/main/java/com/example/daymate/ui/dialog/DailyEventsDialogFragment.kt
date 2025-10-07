@@ -92,17 +92,35 @@ class DailyEventsDialogFragment : DialogFragment() {
     private fun setupClickListeners() {
         // 关闭按钮
         binding.btnClose.setOnClickListener {
-            dismiss()
+            try {
+                dismiss()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         // 添加事件按钮
         binding.btnAddEvent.setOnClickListener {
-            val addEventDialog = AddEditEventDialogFragment.newInstance(
-                null, 
-                selectedDate.atTime(9, 0)
-            )
-            addEventDialog.show(parentFragmentManager, "AddEventDialog")
-            dismiss()
+            try {
+                val addEventDialog = AddEditEventDialogFragment.newInstance(
+                    null, 
+                    selectedDate.atTime(9, 0)
+                )
+                val fragmentManager = parentFragmentManager
+                if (fragmentManager.isStateSaved) {
+                    return@setOnClickListener
+                }
+                addEventDialog.show(fragmentManager, "AddEventDialog")
+                dismiss()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 如果出错，至少要关闭当前对话框
+                try {
+                    dismiss()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
         }
     }
 
@@ -147,9 +165,22 @@ class DailyEventsDialogFragment : DialogFragment() {
 
         eventsAdapter = DailyEventsAdapter(sortedEvents) { event ->
             // 点击事件，显示详情
-            val detailsDialog = EventDetailsDialogFragment.newInstance(event)
-            detailsDialog.show(parentFragmentManager, "EventDetailsDialog")
-            dismiss()
+            try {
+                val detailsDialog = EventDetailsDialogFragment.newInstance(event)
+                val fragmentManager = parentFragmentManager
+                if (!fragmentManager.isStateSaved) {
+                    detailsDialog.show(fragmentManager, "EventDetailsDialog")
+                    dismiss()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 如果出错，至少要关闭当前对话框
+                try {
+                    dismiss()
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
         }
 
         binding.recyclerViewEvents.adapter = eventsAdapter
