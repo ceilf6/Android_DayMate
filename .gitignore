@@ -5,6 +5,9 @@
 /.idea/
 .DS_Store
 /build
+/shared/ui-android/build
+/shared/core/build/
+/apps/android-calendar/build/
 */build/
 /captures
 .externalNativeBuild
