@@ -20,4 +20,13 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DayMate"
-include(":app")
+
+// Android 原生应用
+include(":apps:android-calendar")
+
+// 共享模块
+include(":shared:core")
+include(":shared:ui-android")
+
+// 可选：React Native 的 Android 部分可以单独构建
+// include(":apps:rn-calendar:android:app")

@@ -1,21 +1,129 @@
 # DayMate — 你的日程小帮手
 
-一个面向日常与专业场景的安卓日历产品。DayMate 以清晰直观的日历视图和灵活的事件管理为核心，兼顾本地隐私与标准互操作性（支持 RFC5545/ICS），适合个人用户与对日程导入/订阅有需求的高级用户。
+一个面向日常与专业场景的跨平台日历产品。DayMate 采用 Monorepo 架构，同时支持 Android 原生和 React Native 跨平台应用，以清晰直观的日历视图和灵活的事件管理为核心。
 
-## 核心卖点
-- 视图丰富：支持月视图、周视图、日视图，快速切换，聚焦你关心的时间范围。
-- 简洁的日程编辑：快速新增/编辑/删除日程，支持重复规则与自定义提醒。
-- 可靠的提醒体系：本地通知与开机后重建提醒，支持多次提前提醒。
-- 标准兼容：支持 RFC5545/ICS 的导入导出，便于与其他日历（Google Calendar、Outlook 等）互通。
-- 网络订阅：支持通过 URL 订阅公共或私有日历（webcal/https），自动周期更新。
-- 农历支持：内置农历展示（节气、农历日期），方便面向中文用户的使用习惯。
+## 🏗️ 架构概览
 
-## 适用场景
-- 个人时间管理：安排会议、任务与待办。
-- 家庭共享日历（导出/订阅）：将日程共享给家人或订阅外部日历。
-- 导入历史日程：从 ICS 文件导入批量事件。
+DayMate 采用 Monorepo 架构，包含以下模块：
 
-## 主要功能一览
+```
+DayMate/
+├── apps/
+│   ├── android-calendar/    # Android 原生应用
+│   └── rn-calendar/          # React Native 跨平台应用
+├── shared/
+│   ├── core/                 # 共享核心业务逻辑
+│   └── ui-android/           # Android UI 组件库
+└── docs/                     # 项目文档
+```
+
+## ✨ 核心特性
+
+### 🎨 多平台支持
+- **Android 原生**: 完整的 Material Design 体验
+- **React Native**: iOS / Android 跨平台支持
+- **共享核心**: 统一的业务逻辑和数据模型
+
+### 📅 丰富的日历视图
+- 月视图：查看整月日程安排
+- 周视图：专注本周计划
+- 日视图：详细的单日时间线
+- 快速切换，聚焦你关心的时间范围
+
+### 🔔 智能提醒
+- 本地通知提醒
+- 多次提前提醒
+- 开机后自动重建提醒
+
+### 🌏 标准兼容
+- 支持 RFC5545/ICS 导入导出
+- 与 Google Calendar、Outlook 等互通
+- 网络订阅支持（webcal/https）
+
+### 🎑 农历支持
+- 内置农历日期显示
+- 节气和传统节日
+- 面向中文用户优化
+
+## 🚀 快速开始
+
+### 环境要求
+
+- **Android 开发**: JDK 17+, Android Studio Hedgehog+, Android SDK 34
+- **React Native**: Node.js 16+, npm/yarn
+- **iOS 开发**: Xcode 14+, CocoaPods
+
+### 构建 Android 应用
+
+```bash
+# 克隆仓库
+git clone https://github.com/ceilf6/Android_DayMate.git
+cd DayMate
+
+# 构建并安装
+./gradlew :apps:android-calendar:installDebug
+```
+
+### 运行 React Native 应用
+
+```bash
+# 进入 RN 目录
+cd apps/rn-calendar
+
+# 安装依赖
+npm install
+
+# 运行 Android
+npm run android
+
+# 运行 iOS
+npm run ios
+```
+
+## 📖 文档
+
+- [架构文档](./docs/ARCHITECTURE.md) - 了解 Monorepo 架构设计
+- [开发指南](./docs/DEVELOPMENT.md) - 开发环境配置和工作流
+- [迁移指南](./docs/MIGRATION.md) - 从单应用迁移到 Monorepo
+
+## 🎯 适用场景
+- 个人时间管理：安排会议、任务与待办
+- 家庭共享日历：导出/订阅日历分享给家人
+- 跨平台使用：在 Android 和 iOS 设备间无缝切换
+- 导入历史日程：从 ICS 文件批量导入事件
+
+## 🛠️ 技术栈
+
+### Android 原生
+- Kotlin
+- Jetpack (Room, ViewModel, LiveData, Navigation, WorkManager)
+- Material Design 3
+- Coroutines & Flow
+
+### React Native
+- TypeScript
+- React Navigation
+- AsyncStorage / SQLite
+- React Native Calendars
+
+### 共享层
+- Kotlin (共享核心逻辑)
+- Gradle Multi-Project
+- Room Database
+
+## 🧪 测试
+
+```bash
+# Android 单元测试
+./gradlew :shared:core:test
+./gradlew :apps:android-calendar:test
+
+# React Native 测试
+cd apps/rn-calendar
+npm test
+```
+
+## 📱 主要功能一览
 
 - 日历视图
     - 月视图 / 周视图 / 日视图切换

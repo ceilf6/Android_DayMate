@@ -1,15 +1,54 @@
+# Android
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
 .DS_Store
 /build
+*/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+
+# React Native
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+apps/rn-calendar/ios/Pods/
+apps/rn-calendar/ios/build/
+apps/rn-calendar/android/app/build/
+apps/rn-calendar/android/.gradle/
+apps/rn-calendar/.expo/
+apps/rn-calendar/.expo-shared/
+
+# iOS
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+*.swp
+*.swo
+*~
+
+# Misc
+*.orig
+*.bak
+*.tmp
+.cache/
