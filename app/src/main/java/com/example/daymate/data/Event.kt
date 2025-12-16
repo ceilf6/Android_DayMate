@@ -9,7 +9,15 @@ import java.time.LocalDateTime
  * 日历事件实体类
  * 基于RFC5545标准的iCalendar格式设计
  */
-@Entity(tableName = "events")
+@Entity(
+    tableName = "events",
+    indices = [
+        androidx.room.Index(value = ["startTime"]),
+        androidx.room.Index(value = ["endTime"]),
+        androidx.room.Index(value = ["category"]),
+        androidx.room.Index(value = ["reminderMinutes"])
+    ]
+)
 data class Event(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

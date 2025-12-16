@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.daymate.data.Event
 import com.example.daymate.repository.EventRepository
 import com.example.daymate.service.ReminderManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,13 +38,16 @@ class CalendarViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
+    // 用于取消之前的加载任务，避免重复加载
+    private var loadEventsJob: Job? = null
+    
     init {
         loadEvents()
     }
     
     fun setSelectedDate(date: LocalDateTime) {
         _selectedDate.value = date
-        loadEventsForSelectedDate()
+        // 不立即加载，因为会在视图切换时统一加载
     }
     
     fun setViewMode(mode: CalendarViewMode) {
@@ -52,24 +56,19 @@ class CalendarViewModel(
     }
     
     private fun loadEvents() {
-        viewModelScope.launch {
+        // 取消之前的加载任务
+        loadEventsJob?.cancel()
+        loadEventsJob = viewModelScope.launch {
             repository.getAllEvents().collect { eventList ->
                 _events.value = eventList
             }
         }
     }
     
-    private fun loadEventsForSelectedDate() {
-        viewModelScope.launch {
-            val date = _selectedDate.value
-            repository.getEventsByDate(date).collect { eventList ->
-                _events.value = eventList
-            }
-        }
-    }
-    
     private fun loadEventsForCurrentView() {
-        viewModelScope.launch {
+        // 取消之前的加载任务，避免重复加载
+        loadEventsJob?.cancel()
+        loadEventsJob = viewModelScope.launch {
             val startDate = when (_viewMode.value) {
                 CalendarViewMode.MONTH -> _selectedDate.value.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
                 CalendarViewMode.WEEK -> {

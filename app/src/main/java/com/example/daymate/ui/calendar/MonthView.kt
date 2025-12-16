@@ -189,30 +189,33 @@ class MonthView @JvmOverloads constructor(
         
         paint.textSize = eventTextSize
         
-        val eventsByDate = events.groupBy { event ->
-            event.startTime.toLocalDate()
-        }
-        
         val firstDayOfMonth = yearMonth.atDay(1)
         val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
-        val daysInMonth = yearMonth.lengthOfMonth()
+        
+        // 使用HashMap来聚合同一天的事件，避免多次groupBy
+        val eventsByDate = hashMapOf<LocalDate, MutableList<Event>>()
+        for (event in events) {
+            val date = event.startTime.toLocalDate()
+            if (YearMonth.from(date) == yearMonth) {
+                eventsByDate.getOrPut(date) { mutableListOf() }.add(event)
+            }
+        }
         
         eventsByDate.forEach { (date, dayEvents) ->
-            if (YearMonth.from(date) == yearMonth) {
-                val dayOfMonth = date.dayOfMonth
-                val col = (firstDayOfWeek + dayOfMonth - 1) % 7
-                val row = (firstDayOfWeek + dayOfMonth - 1) / 7 + 1
-                
-                val x = padding + col * cellWidth
-                val y = padding + row * cellHeight
-                
-                // 按优先级排序事件，高优先级在前
-                val sortedEvents = dayEvents.sortedBy { 
-                    when {
-                        it.priority == 0 -> 10  // 无优先级排在最后
-                        else -> it.priority     // 优先级1最高，排在最前
-                    }
+            val dayOfMonth = date.dayOfMonth
+            val col = (firstDayOfWeek + dayOfMonth - 1) % 7
+            val row = (firstDayOfWeek + dayOfMonth - 1) / 7 + 1
+            
+            val x = padding + col * cellWidth
+            val y = padding + row * cellHeight
+            
+            // 按优先级排序事件，高优先级在前
+            val sortedEvents = dayEvents.sortedBy { 
+                when {
+                    it.priority == 0 -> 10  // 无优先级排在最后
+                    else -> it.priority     // 优先级1最高，排在最前
                 }
+            }
                 
                 // 绘制最多3个事件指示器
                 val maxIndicators = minOf(3, sortedEvents.size)
@@ -282,7 +285,6 @@ class MonthView @JvmOverloads constructor(
                 }
             }
         }
-    }
     
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val handled = gestureDetector.onTouchEvent(event)
@@ -419,5 +421,14 @@ class MonthView @JvmOverloads constructor(
         yearMonth = yearMonth.plusMonths(1)
         onMonthChanged?.invoke(yearMonth)
         invalidate()
+    }
+    
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // 清理回调，防止内存泄漏
+        onDateSelected = null
+        onEventClicked = null
+        onMonthChanged = null
+        onDateDoubleClicked = null
     }
 }

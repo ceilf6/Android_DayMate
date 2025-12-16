@@ -8,7 +8,7 @@ import android.content.Context
 
 @Database(
     entities = [Event::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

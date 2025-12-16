@@ -324,4 +324,12 @@ class DayView @JvmOverloads constructor(
         onDayChanged?.invoke(selectedDate)
         invalidate()
     }
+    
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // 清理回调，防止内存泄漏
+        onTimeSlotClicked = null
+        onEventClicked = null
+        onDayChanged = null
+    }
 }

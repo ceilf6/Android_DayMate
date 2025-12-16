@@ -160,19 +160,20 @@ class CalendarFragment : Fragment() {
     }
     
     private fun observeViewModel() {
-        lifecycleScope.launch {
+        // 使用viewLifecycleOwner.lifecycleScope确保在Fragment销毁时自动取消
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.viewMode.collect { mode ->
                 updateViewMode(mode)
             }
         }
         
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.selectedDate.collect { dateTime ->
                 updateDateDisplay(dateTime)
             }
         }
         
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.events.collect { events ->
                 updateEventsDisplay(events)
             }
@@ -275,11 +276,11 @@ class CalendarFragment : Fragment() {
     
     private fun showDailyEventsDialog(date: LocalDate) {
         // 添加Toast来确认双击被检测到
-        android.widget.Toast.makeText(
-            requireContext(), 
-            "双击日期: ${date}", 
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
+        // android.widget.Toast.makeText(
+        //     requireContext(), 
+        //     "双击日期: ${date}", 
+        //     android.widget.Toast.LENGTH_SHORT
+        // ).show()
         
         val dialog = DailyEventsDialogFragment.newInstance(date)
         dialog.show(parentFragmentManager, "DailyEventsDialog")
@@ -292,6 +293,20 @@ class CalendarFragment : Fragment() {
     
     override fun onDestroyView() {
         super.onDestroyView()
+        // 清理所有View的回调，防止内存泄漏
+        binding.monthView.onDateSelected = null
+        binding.monthView.onMonthChanged = null
+        binding.monthView.onDateDoubleClicked = null
+        
+        binding.weekView.onDateSelected = null
+        binding.weekView.onTimeSlotClicked = null
+        binding.weekView.onWeekChanged = null
+        binding.weekView.onEventClicked = null
+        
+        binding.dayView.onTimeSlotClicked = null
+        binding.dayView.onEventClicked = null
+        binding.dayView.onDayChanged = null
+        
         _binding = null
     }
     

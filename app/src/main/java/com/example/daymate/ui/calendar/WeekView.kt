@@ -41,6 +41,10 @@ class WeekView @JvmOverloads constructor(
     private val hourCount = 24
     private val headerHeight = 120f
     
+    // 缓存时间标签，避免频繁创建对象
+    private val timeLabels = Array(24) { hour -> String.format("%02d:00", hour) }
+    private val weekDays = arrayOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")
+    
     var onDateSelected: ((LocalDate) -> Unit)? = null
     var onEventClicked: ((Event) -> Unit)? = null
     var onTimeSlotClicked: ((LocalDateTime) -> Unit)? = null
@@ -48,6 +52,15 @@ class WeekView @JvmOverloads constructor(
     
     init {
         paint.textAlign = Paint.Align.CENTER
+    }
+    
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // 清理回调，防止内存泄漏
+        onDateSelected = null
+        onEventClicked = null
+        onTimeSlotClicked = null
+        onWeekChanged = null
     }
     
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -68,8 +81,6 @@ class WeekView @JvmOverloads constructor(
     
     private fun drawWeekHeader(canvas: Canvas) {
         paint.textSize = dayTextSize
-        
-        val weekDays = arrayOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")
         
         for (i in 0..6) {
             val date = weekStartDate.plusDays(i.toLong())
@@ -158,10 +169,9 @@ class WeekView @JvmOverloads constructor(
         
         for (hour in 0 until hourCount) {
             val y = headerHeight + hour * hourHeight + hourHeight / 2
-            val timeText = String.format("%02d:00", hour)
             
             canvas.drawText(
-                timeText,
+                timeLabels[hour],
                 padding - 10f,
                 y + paint.textSize / 3,
                 paint
@@ -174,18 +184,13 @@ class WeekView @JvmOverloads constructor(
     private fun drawEvents(canvas: Canvas) {
         if (events.isEmpty()) return
         
-        val eventsByDate = events.groupBy { event ->
-            event.startTime.toLocalDate()
-        }
-        
-        eventsByDate.forEach { (date, dayEvents) ->
+        // 直接遍历事件，避免groupBy创建额外的Map对象
+        for (event in events) {
+            val date = event.startTime.toLocalDate()
             val dayOffset = ChronoUnit.DAYS.between(weekStartDate, date).toInt()
             if (dayOffset in 0..6) {
                 val x = padding + dayOffset * cellWidth
-                
-                dayEvents.forEach { event ->
-                    drawEvent(canvas, event, x)
-                }
+                drawEvent(canvas, event, x)
             }
         }
     }
