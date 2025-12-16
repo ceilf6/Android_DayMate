@@ -83,16 +83,24 @@ class WeekView @JvmOverloads constructor(
             )
             
             // 绘制日期背景
-            if (selectedDate == date) {
+            val isSelected = selectedDate == date
+            val isToday = date == LocalDate.now()
+            
+            if (isSelected) {
                 paint.color = ContextCompat.getColor(context, R.color.primary)
                 canvas.drawRect(cellRect, paint)
-            } else if (date == LocalDate.now()) {
+            } else if (isToday) {
                 paint.color = ContextCompat.getColor(context, R.color.accent)
                 canvas.drawRect(cellRect, paint)
             }
             
-            // 绘制日期文字
-            paint.color = ContextCompat.getColor(context, android.R.color.white)
+            // 绘制日期文字 - 根据是否有背景色设置合适的文字颜色
+            paint.color = if (isSelected || isToday) {
+                ContextCompat.getColor(context, android.R.color.white)
+            } else {
+                ContextCompat.getColor(context, R.color.primary_text)
+            }
+            
             canvas.drawText(
                 date.dayOfMonth.toString(),
                 cellRect.centerX().toFloat(),
@@ -100,9 +108,11 @@ class WeekView @JvmOverloads constructor(
                 paint
             )
             
+            // 绘制星期标签 - 根据日期的实际星期获取
+            val dayOfWeekIndex = date.dayOfWeek.value % 7  // 转换为周日=0, 周一=1, ..., 周六=6
             paint.textSize = 32f
             canvas.drawText(
-                weekDays[i],
+                weekDays[dayOfWeekIndex],
                 cellRect.centerX().toFloat(),
                 cellRect.centerY().toFloat() + 20f,
                 paint
