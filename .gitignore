@@ -1,18 +1,17 @@
-# Android
+# ===== Android / Gradle =====
 *.iml
 .gradle
 /local.properties
 /.idea/
 .DS_Store
-/build
-/shared/ui-android/build
-/shared/core/build
-/apps/android-calendar/build
+
+# All build outputs
+/build/
 */build/
-/captures
+
 .externalNativeBuild
 .cxx
-local.properties
+/captures
 *.apk
 *.ap_
 *.dex
@@ -21,11 +20,12 @@ bin/
 gen/
 out/
 
-# React Native
+# ===== React Native =====
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
 apps/rn-calendar/ios/Pods/
 apps/rn-calendar/ios/build/
 apps/rn-calendar/android/app/build/
@@ -33,7 +33,7 @@ apps/rn-calendar/android/.gradle/
 apps/rn-calendar/.expo/
 apps/rn-calendar/.expo-shared/
 
-# iOS
+# ===== iOS =====
 *.ipa
 *.dSYM.zip
 *.dSYM
@@ -41,16 +41,16 @@ DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 
-# Logs
+# ===== Logs =====
 *.log
 
-# IDEs
+# ===== IDE =====
 .vscode/
 *.swp
 *.swo
 *~
 
-# Misc
+# ===== Misc =====
 *.orig
 *.bak
 *.tmp
