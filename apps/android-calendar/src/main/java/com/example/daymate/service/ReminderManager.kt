@@ -45,7 +45,11 @@ class ReminderManager(private val context: Context) {
         }
         
         try {
-            val delay = Duration.between(now, reminderTime).toMinutes()
+            val delayMillis = Duration.between(now, reminderTime).toMillis()
+            if (delayMillis <= 0) {
+                Log.d(TAG, "Reminder delay is non-positive for event: ${event.title}")
+                return
+            }
             
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
@@ -60,12 +64,13 @@ class ReminderManager(private val context: Context) {
                         .build()
                 )
                 .setConstraints(constraints)
-                .setInitialDelay(delay, TimeUnit.MINUTES)
+                .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
+                .addTag("reminder")
                 .addTag("reminder_${event.id}")
                 .build()
             
             workManager.enqueue(reminderWork)
-            Log.d(TAG, "Scheduled reminder for event: ${event.title}, delay: $delay minutes")
+            Log.d(TAG, "Scheduled reminder for event: ${event.title}, delayMillis: $delayMillis")
         } catch (e: Exception) {
             Log.e(TAG, "Error scheduling reminder for event: ${event.title}", e)
         }
