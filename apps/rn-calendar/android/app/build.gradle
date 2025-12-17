@@ -41,10 +41,14 @@ android {
 
 dependencies {
     implementation("com.facebook.react:react-android")
+    implementation("com.facebook.react:hermes-android")
     
     // React Native 依赖
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    
+    // SoLoader
+    implementation("com.facebook.soloader:soloader:0.10.5+")
     
     // 可选：依赖共享的 Android 核心模块
     // implementation(project(":shared:core"))
