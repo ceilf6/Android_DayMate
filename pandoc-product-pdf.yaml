@@ -1,0 +1,4 @@
+# Pandoc defaults for building product.md -> product.pdf via XeLaTeX
+# Usage:
+#   pandoc --defaults=pandoc-product-pdf.yaml product.md -o product.pdf
+pdf-engine: xelatex
