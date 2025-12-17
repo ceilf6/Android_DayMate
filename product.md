@@ -1,3 +1,23 @@
+---
+title: DayMate 产品报告
+author: 王景宏
+date: \today
+pdf-engine: xelatex
+documentclass: ctexart
+classoption:
+  - fontset=none
+
+mainfont: Songti SC
+monofont: Hiragino Sans GB
+
+fontsize: 12pt
+geometry:
+  - margin=2.5cm
+linestretch: 1.5
+toc: true
+toc-depth: 3
+numbersections: true
+---
 
 # DayMate 产品报告
 
