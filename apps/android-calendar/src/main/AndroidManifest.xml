@@ -8,6 +8,9 @@
     
     <!-- 通知权限，用于提醒功能 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 精确闹钟权限（Android 12+ 可能需要用户允许），用于按分钟级准确触发提醒 -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     
     <!-- 存储权限，用于导入导出功能 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -44,6 +47,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <receiver
+            android:name=".receiver.ReminderReceiver"
+            android:exported="false" />
         
     </application>
 
