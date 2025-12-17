@@ -1,7 +1,6 @@
 rootProject.name = 'DayMateRN'
 
 apply from: file("../node_modules/@react-native/gradle-plugin/settings.gradle.kts")
-apply from: file("../node_modules/react-native-screens/RNScreens.gradle")
 
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
