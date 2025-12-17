@@ -1,6 +1,9 @@
 package com.daymate.rn
 
+import android.os.Bundle
 import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
 
@@ -10,5 +13,9 @@ class MainActivity : ReactActivity() {
      */
     override fun getMainComponentName(): String {
         return "DayMateRN"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(null)
     }
 }
