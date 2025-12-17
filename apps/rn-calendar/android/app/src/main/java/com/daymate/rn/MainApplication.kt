@@ -1,13 +1,12 @@
 package com.daymate.rn
 
 import android.app.Application
+import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.shell.MainReactPackage
 import com.facebook.soloader.SoLoader
-import com.swmansion.rnscreens.RNScreensPackage
-import com.th3rdwave.safeareacontext.SafeAreaContextPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -17,11 +16,10 @@ class MainApplication : Application(), ReactApplication {
         }
 
         override fun getPackages(): List<ReactPackage> {
-            return listOf(
-                MainReactPackage(),
-                RNScreensPackage(),
-                SafeAreaContextPackage()
-            )
+            // Packages that cannot be autolinked yet can be added manually here
+            val packages = PackageList(this).packages.toMutableList()
+            // packages.add(MyReactNativePackage())
+            return packages
         }
 
         override fun getJSMainModuleName(): String {

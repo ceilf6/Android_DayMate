@@ -50,10 +50,6 @@ dependencies {
     // SoLoader
     implementation("com.facebook.soloader:soloader:0.10.5+")
     
-    // React Native community libraries
-    implementation project(':react-native-screens')
-    implementation project(':react-native-safe-area-context')
-    
     // 可选：依赖共享的 Android 核心模块
     // implementation(project(":shared:core"))
 }
