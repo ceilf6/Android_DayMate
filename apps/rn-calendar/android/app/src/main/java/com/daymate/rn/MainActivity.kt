@@ -16,6 +16,16 @@ class MainActivity : ReactActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Set the theme to AppTheme BEFORE onCreate to support react-native-screens
+        setTheme(R.style.AppTheme)
         super.onCreate(null)
+    }
+
+    override fun createReactActivityDelegate(): ReactActivityDelegate {
+        return DefaultReactActivityDelegate(
+            this,
+            mainComponentName,
+            false // Enable Fabric renderer if needed
+        )
     }
 }

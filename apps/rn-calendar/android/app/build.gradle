@@ -53,3 +53,7 @@ dependencies {
     // 可选：依赖共享的 Android 核心模块
     // implementation(project(":shared:core"))
 }
+
+// Auto-link native modules
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesAppBuildGradle(project)
