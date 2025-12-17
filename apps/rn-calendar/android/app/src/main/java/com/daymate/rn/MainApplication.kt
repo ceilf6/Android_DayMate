@@ -1,7 +1,6 @@
 package com.daymate.rn
 
 import android.app.Application
-import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
@@ -16,10 +15,8 @@ class MainApplication : Application(), ReactApplication {
         }
 
         override fun getPackages(): List<ReactPackage> {
-            // Packages that cannot be autolinked yet can be added manually here
-            val packages = PackageList(this).packages.toMutableList()
-            // packages.add(MyReactNativePackage())
-            return packages
+            // Use MainReactPackage for basic React Native support
+            return listOf(MainReactPackage())
         }
 
         override fun getJSMainModuleName(): String {
