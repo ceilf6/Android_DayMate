@@ -27,6 +27,12 @@ npm run android
 
 ### 运行 iOS
 
+首次在本机运行 iOS 前，需要安装 CocoaPods（如果你还没有安装）：
+
+```bash
+brew install cocoapods
+```
+
 ```bash
 cd ios
 pod install
