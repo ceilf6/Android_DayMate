@@ -33,6 +33,15 @@ npm run android
 brew install cocoapods
 ```
 
+推荐使用脚本（会自动处理本机代理/证书差异，并默认禁用 Flipper 以提升稳定性）：
+
+```bash
+npm run ios:pods
+npm run ios:run
+```
+
+或按传统方式：
+
 ```bash
 cd ios
 pod install
