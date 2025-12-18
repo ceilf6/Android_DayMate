@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
     useColorScheme,
 } from 'react-native';
-import { Calendar, WeekCalendar } from 'react-native-calendars';
+import { Calendar, CalendarProvider, WeekCalendar } from 'react-native-calendars';
 import { addDays, format, parseISO } from 'date-fns';
 
 import type { CalendarEvent } from '../models/CalendarEvent';
@@ -267,23 +267,24 @@ const HomeScreen = () => {
                         </TouchableOpacity>
                     </View>
                 ) : viewMode === 'week' ? (
-                    <WeekCalendar
-                        current={selectedDate}
-                        onDayPress={onDayPress}
-                        markedDates={markedDates}
-                        theme={{
-                            backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-                            calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
-                            textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
-                            selectedDayBackgroundColor: '#2196F3',
-                            selectedDayTextColor: '#ffffff',
-                            todayTextColor: '#2196F3',
-                            dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
-                            textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
-                            monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
-                            arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
-                        }}
-                    />
+                    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+                        <WeekCalendar
+                            current={selectedDate}
+                            markedDates={markedDates}
+                            theme={{
+                                backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+                                calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
+                                textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
+                                selectedDayBackgroundColor: '#2196F3',
+                                selectedDayTextColor: '#ffffff',
+                                todayTextColor: '#2196F3',
+                                dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
+                                textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
+                                monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
+                                arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
+                            }}
+                        />
+                    </CalendarProvider>
                 ) : (
                     <Calendar
                         current={selectedDate}
