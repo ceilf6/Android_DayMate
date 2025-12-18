@@ -86,6 +86,25 @@ export class EventStorage {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
         return updated;
     }
+
+    static async deleteEvent(date: string, eventId: string): Promise<CalendarEvent | null> {
+        const all = await EventStorage.getAllEventsByDate();
+        const list = all[date] ?? [];
+        const index = list.findIndex(e => e.id === eventId);
+        if (index === -1) return null;
+
+        const deleted = list[index];
+        const next = list.filter(e => e.id !== eventId);
+
+        if (next.length === 0) {
+            delete all[date];
+        } else {
+            all[date] = next;
+        }
+
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+        return deleted;
+    }
 }
 
 export type { EventsByDate };

@@ -81,4 +81,20 @@ export class ReminderService {
 
         return id;
     }
+
+    static async cancelReminder(notificationId: string): Promise<void> {
+        if (!notificationId) return;
+
+        try {
+            await notifee.cancelTriggerNotification(notificationId);
+        } catch {
+            // ignore
+        }
+
+        try {
+            await notifee.cancelNotification(notificationId);
+        } catch {
+            // ignore
+        }
+    }
 }

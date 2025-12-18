@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+    Alert,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -34,6 +35,10 @@ const HomeScreen = () => {
     const [newNotes, setNewNotes] = useState('');
     const [newReminderMinutes, setNewReminderMinutes] = useState('');
     const [formError, setFormError] = useState('');
+
+    const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+    const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+    const [detailError, setDetailError] = useState('');
 
     useEffect(() => {
         let isMounted = true;
@@ -102,6 +107,56 @@ const HomeScreen = () => {
     const closeAddModal = () => {
         setIsAddModalVisible(false);
         setFormError('');
+    };
+
+    const openDetailModal = (event: CalendarEvent) => {
+        setDetailError('');
+        setDetailEvent(event);
+        setIsDetailModalVisible(true);
+    };
+
+    const closeDetailModal = () => {
+        setIsDetailModalVisible(false);
+        setDetailEvent(null);
+        setDetailError('');
+    };
+
+    const onDeleteEvent = async () => {
+        if (!detailEvent) return;
+
+        Alert.alert('删除日程', '确定要删除这条日程吗？', [
+            { text: '取消', style: 'cancel' },
+            {
+                text: '删除',
+                style: 'destructive',
+                onPress: async () => {
+                    try {
+                        if (detailEvent.notificationId) {
+                            await ReminderService.cancelReminder(detailEvent.notificationId);
+                        }
+
+                        const deleted = await EventStorage.deleteEvent(detailEvent.date, detailEvent.id);
+                        if (!deleted) {
+                            setDetailError('删除失败（未找到该日程）');
+                            return;
+                        }
+
+                        setEventsByDate(prev => {
+                            const next = { ...prev };
+                            const list = next[deleted.date] ?? [];
+                            const filtered = list.filter(e => e.id !== deleted.id);
+                            if (filtered.length === 0) delete next[deleted.date];
+                            else next[deleted.date] = filtered;
+                            return next;
+                        });
+
+                        closeDetailModal();
+                    } catch {
+                        setDetailError('删除失败，请重试');
+                    }
+                },
+            },
+        ]);
     };
 
     const isValidTime = (value: string): boolean => {
@@ -328,7 +383,11 @@ const HomeScreen = () => {
                         ) : (
                             <View style={styles.eventList}>
                                 {selectedEvents.map(event => (
-                                    <View key={event.id} style={styles.eventItem}>
+                                    <TouchableOpacity
+                                        key={event.id}
+                                        style={styles.eventItem}
+                                        onPress={() => openDetailModal(event)}
+                                        accessibilityRole="button">
                                         <Text
                                             style={[
                                                 styles.eventItemTitle,
@@ -367,7 +426,7 @@ const HomeScreen = () => {
                                                 {event.notes}
                                             </Text>
                                         ) : null}
-                                    </View>
+                                    </TouchableOpacity>
                                 ))}
                             </View>
                         )}
@@ -446,6 +505,86 @@ const HomeScreen = () => {
                                     onPress={onSaveNewEvent}
                                     accessibilityRole="button">
                                     <Text style={styles.saveButtonText}>保存</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
+                <Modal
+                    visible={isDetailModalVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={closeDetailModal}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalBackdrop} />
+                        <View style={[styles.modalCard, isDarkMode && styles.modalCardDark]}>
+                            <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>
+                                日程详情
+                            </Text>
+
+                            {detailEvent ? (
+                                <>
+                                    <Text style={[styles.modalSubtitle, isDarkMode && styles.textDark]}>
+                                        日期：{detailEvent.date}
+                                    </Text>
+
+                                    <View style={styles.detailRow}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                            标题
+                                        </Text>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                            {detailEvent.title}
+                                        </Text>
+                                    </View>
+
+                                    <View style={styles.detailRow}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                            时间
+                                        </Text>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                            {(detailEvent.startTime || detailEvent.endTime)
+                                                ? `${detailEvent.startTime ?? ''}${detailEvent.endTime ? ` - ${detailEvent.endTime}` : ''}`
+                                                : '全天'}
+                                        </Text>
+                                    </View>
+
+                                    <View style={styles.detailRow}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                            提醒
+                                        </Text>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                            {detailEvent.reminderMinutes && detailEvent.reminderMinutes > 0
+                                                ? `提前 ${detailEvent.reminderMinutes} 分钟`
+                                                : '无'}
+                                        </Text>
+                                    </View>
+
+                                    <View style={styles.detailRow}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                            备注
+                                        </Text>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                            {detailEvent.notes?.trim() ? detailEvent.notes : '无'}
+                                        </Text>
+                                    </View>
+                                </>
+                            ) : null}
+
+                            {detailError ? <Text style={styles.formErrorText}>{detailError}</Text> : null}
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, styles.cancelButton]}
+                                    onPress={closeDetailModal}
+                                    accessibilityRole="button">
+                                    <Text style={styles.cancelButtonText}>关闭</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, styles.deleteButton]}
+                                    onPress={onDeleteEvent}
+                                    accessibilityRole="button">
+                                    <Text style={styles.deleteButtonText}>删除</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -606,6 +745,20 @@ const styles = StyleSheet.create({
         color: '#666666',
     },
 
+    detailRow: {
+        marginBottom: 10,
+    },
+    detailLabel: {
+        fontSize: 12,
+        color: '#666666',
+        marginBottom: 4,
+        fontWeight: '600',
+    },
+    detailValue: {
+        fontSize: 14,
+        color: '#000000',
+    },
+
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
@@ -691,6 +844,15 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: '#ffffff',
+        fontWeight: '700',
+        fontSize: 14,
+    },
+
+    deleteButton: {
+        backgroundColor: '#f5f5f5',
+    },
+    deleteButtonText: {
+        color: '#FF3B30', // UIColor.systemRed,
         fontWeight: '700',
         fontSize: 14,
     },
