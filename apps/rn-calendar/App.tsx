@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Platform,
     SafeAreaView,
     StatusBar,
     StyleSheet,
@@ -28,6 +29,7 @@ function App(): JSX.Element {
                         backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
                     },
                     headerTintColor: isDarkMode ? '#ffffff' : '#000000',
+                    headerTitleAlign: Platform.OS === 'android' ? 'center' : 'center',
                 }}>
                 <Stack.Screen
                     name="Home"
