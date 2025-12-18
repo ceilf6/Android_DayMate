@@ -21,7 +21,7 @@ numbersections: true
 
 # DayMate 产品报告
 
-日期：2025-12-17
+日期：2025-12-18
 
 DayMate 是一款跨平台日程管理产品，目标是在 Android 与 React Native 两端提供一致的“查看日历、创建/管理事件、提醒通知”等核心能力，并以可演进的共享业务层（shared/core）承载跨端一致的领域模型与仓库接口。
 
