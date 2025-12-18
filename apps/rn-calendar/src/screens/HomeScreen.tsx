@@ -10,14 +10,20 @@ import {
     TouchableOpacity,
     useColorScheme,
 } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, WeekCalendar } from 'react-native-calendars';
+import { addDays, format, parseISO } from 'date-fns';
 
 import type { CalendarEvent } from '../models/CalendarEvent';
 import { EventStorage } from '../services/EventStorage';
 
 const HomeScreen = () => {
     const isDarkMode = useColorScheme() === 'dark';
-    const [selectedDate, setSelectedDate] = useState('');
+
+    type ViewMode = 'month' | 'week' | 'day';
+    const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+
+    const [viewMode, setViewMode] = useState<ViewMode>('month');
+    const [selectedDate, setSelectedDate] = useState(today);
     const [eventsByDate, setEventsByDate] = useState<Record<string, CalendarEvent[]>>({});
 
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -40,6 +46,16 @@ const HomeScreen = () => {
 
     const onDayPress = (day: any) => {
         setSelectedDate(day.dateString);
+    };
+
+    const shiftSelectedDate = (deltaDays: number) => {
+        try {
+            const base = selectedDate ? parseISO(selectedDate) : parseISO(today);
+            const next = addDays(base, deltaDays);
+            setSelectedDate(format(next, 'yyyy-MM-dd'));
+        } catch {
+            setSelectedDate(today);
+        }
     };
 
     const selectedEvents = useMemo(() => {
@@ -140,22 +156,119 @@ const HomeScreen = () => {
                     </Text>
                 </View>
 
-                <Calendar
-                    onDayPress={onDayPress}
-                    markedDates={markedDates}
-                    theme={{
-                        backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-                        calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
-                        textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
-                        selectedDayBackgroundColor: '#2196F3',
-                        selectedDayTextColor: '#ffffff',
-                        todayTextColor: '#2196F3',
-                        dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
-                        textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
-                        monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
-                        arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
-                    }}
-                />
+                <View style={styles.viewModeRow}>
+                    <TouchableOpacity
+                        onPress={() => setViewMode('month')}
+                        accessibilityRole="button"
+                        style={[
+                            styles.viewModeButton,
+                            isDarkMode && styles.viewModeButtonDark,
+                            viewMode === 'month' && styles.viewModeButtonActive,
+                        ]}>
+                        <Text
+                            style={[
+                                styles.viewModeButtonText,
+                                isDarkMode && styles.viewModeButtonTextDark,
+                                viewMode === 'month' && styles.viewModeButtonTextActive,
+                            ]}>
+                            月
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setViewMode('week')}
+                        accessibilityRole="button"
+                        style={[
+                            styles.viewModeButton,
+                            isDarkMode && styles.viewModeButtonDark,
+                            viewMode === 'week' && styles.viewModeButtonActive,
+                        ]}>
+                        <Text
+                            style={[
+                                styles.viewModeButtonText,
+                                isDarkMode && styles.viewModeButtonTextDark,
+                                viewMode === 'week' && styles.viewModeButtonTextActive,
+                            ]}>
+                            周
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setViewMode('day')}
+                        accessibilityRole="button"
+                        style={[
+                            styles.viewModeButton,
+                            isDarkMode && styles.viewModeButtonDark,
+                            viewMode === 'day' && styles.viewModeButtonActive,
+                        ]}>
+                        <Text
+                            style={[
+                                styles.viewModeButtonText,
+                                isDarkMode && styles.viewModeButtonTextDark,
+                                viewMode === 'day' && styles.viewModeButtonTextActive,
+                            ]}>
+                            日
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {viewMode === 'day' ? (
+                    <View style={styles.dayNavRow}>
+                        <TouchableOpacity
+                            onPress={() => shiftSelectedDate(-1)}
+                            accessibilityRole="button"
+                            style={[styles.dayNavButton, isDarkMode && styles.dayNavButtonDark]}>
+                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textDark]}>
+                                上一天
+                            </Text>
+                        </TouchableOpacity>
+                        <Text style={[styles.dayNavTitle, isDarkMode && styles.textDark]}>
+                            {selectedDate}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => shiftSelectedDate(1)}
+                            accessibilityRole="button"
+                            style={[styles.dayNavButton, isDarkMode && styles.dayNavButtonDark]}>
+                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textDark]}>
+                                下一天
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : viewMode === 'week' ? (
+                    <WeekCalendar
+                        current={selectedDate}
+                        onDayPress={onDayPress}
+                        markedDates={markedDates}
+                        theme={{
+                            backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+                            calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
+                            textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
+                            selectedDayBackgroundColor: '#2196F3',
+                            selectedDayTextColor: '#ffffff',
+                            todayTextColor: '#2196F3',
+                            dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
+                            textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
+                            monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
+                            arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
+                        }}
+                    />
+                ) : (
+                    <Calendar
+                        current={selectedDate}
+                        onDayPress={onDayPress}
+                        markedDates={markedDates}
+                        theme={{
+                            backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+                            calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
+                            textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
+                            selectedDayBackgroundColor: '#2196F3',
+                            selectedDayTextColor: '#ffffff',
+                            todayTextColor: '#2196F3',
+                            dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
+                            textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
+                            monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
+                            arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
+                        }}
+                    />
+                )}
 
                 {selectedDate ? (
                     <View style={styles.eventSection}>
@@ -310,6 +423,71 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666666',
         marginTop: 5,
+    },
+    viewModeRow: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        gap: 10,
+    },
+    viewModeButton: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#d9e1e8',
+        backgroundColor: '#ffffff',
+        alignItems: 'center',
+    },
+    viewModeButtonDark: {
+        borderColor: '#444444',
+        backgroundColor: '#1a1a1a',
+    },
+    viewModeButtonActive: {
+        borderColor: '#2196F3',
+        backgroundColor: '#2196F3',
+    },
+    viewModeButtonText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#2d4150',
+    },
+    viewModeButtonTextDark: {
+        color: '#ffffff',
+    },
+    viewModeButtonTextActive: {
+        color: '#ffffff',
+    },
+    dayNavRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        gap: 10,
+    },
+    dayNavButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        backgroundColor: '#f5f5f5',
+    },
+    dayNavButtonDark: {
+        backgroundColor: '#1a1a1a',
+        borderWidth: 1,
+        borderColor: '#444444',
+    },
+    dayNavButtonText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#2d4150',
+    },
+    dayNavTitle: {
+        flex: 1,
+        textAlign: 'center',
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#000000',
     },
     textDark: {
         color: '#ffffff',
