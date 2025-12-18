@@ -181,14 +181,14 @@ const HomeScreen = () => {
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
             <ScrollView contentInsetAdjustmentBehavior="automatic">
-                <View style={styles.header}>
+                {/* <View style={styles.header}>
                     <Text style={[styles.title, isDarkMode && styles.textDark]}>
                         DayMate 日历
                     </Text>
                     <Text style={[styles.subtitle, isDarkMode && styles.textDark]}>
                         跨平台日程管理
                     </Text>
-                </View>
+                </View> */}
 
                 <View style={styles.viewModeRow}>
                     <TouchableOpacity
@@ -480,7 +480,8 @@ const styles = StyleSheet.create({
     viewModeRow: {
         flexDirection: 'row',
         paddingHorizontal: 20,
-        marginBottom: 10,
+        // marginBottom: 10,
+        margin: 10,
         gap: 10,
     },
     viewModeButton: {
