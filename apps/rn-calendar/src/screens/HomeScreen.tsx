@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -12,6 +13,7 @@ import {
     useColorScheme,
 } from 'react-native';
 import { Calendar, CalendarProvider, WeekCalendar } from 'react-native-calendars';
+import type { Theme } from 'react-native-calendars/src/types';
 import { addDays, format, parseISO } from 'date-fns';
 
 import type { CalendarEvent } from '../models/CalendarEvent';
@@ -233,6 +235,33 @@ const HomeScreen = () => {
         closeAddModal();
     };
 
+    const calendarDayFontWeight: '500' | '600' = Platform.OS === 'ios' ? '600' : '500';
+
+    const calendarTheme = useMemo<Theme>(
+        () => ({
+            backgroundColor: 'transparent',
+            calendarBackground: 'transparent',
+
+            textSectionTitleColor: isDarkMode ? '#A1A1AA' : '#6B7280',
+            monthTextColor: isDarkMode ? '#F4F4F5' : '#111827',
+            arrowColor: isDarkMode ? '#F4F4F5' : '#111827',
+
+            selectedDayBackgroundColor: '#2196F3',
+            selectedDayTextColor: '#ffffff',
+            todayTextColor: '#2196F3',
+            dayTextColor: isDarkMode ? '#E5E7EB' : '#111827',
+            textDisabledColor: isDarkMode ? '#52525B' : '#D1D5DB',
+
+            textDayFontSize: 15,
+            textDayFontWeight: calendarDayFontWeight,
+            textDayHeaderFontSize: 12,
+            textDayHeaderFontWeight: '600',
+            textMonthFontSize: 17,
+            textMonthFontWeight: '700',
+        }),
+        [calendarDayFontWeight, isDarkMode],
+    );
+
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
             <ScrollView contentInsetAdjustmentBehavior="automatic">
@@ -245,7 +274,7 @@ const HomeScreen = () => {
                     </Text>
                 </View> */}
 
-                <View style={styles.viewModeRow}>
+                <View style={[styles.viewModeRow, isDarkMode && styles.viewModeRowDark]}>
                     <TouchableOpacity
                         onPress={() => setViewMode('month')}
                         accessibilityRole="button"
@@ -253,12 +282,14 @@ const HomeScreen = () => {
                             styles.viewModeButton,
                             isDarkMode && styles.viewModeButtonDark,
                             viewMode === 'month' && styles.viewModeButtonActive,
+                            isDarkMode && viewMode === 'month' && styles.viewModeButtonActiveDark,
                         ]}>
                         <Text
                             style={[
                                 styles.viewModeButtonText,
                                 isDarkMode && styles.viewModeButtonTextDark,
                                 viewMode === 'month' && styles.viewModeButtonTextActive,
+                                isDarkMode && viewMode === 'month' && styles.viewModeButtonTextActiveDark,
                             ]}>
                             月
                         </Text>
@@ -270,12 +301,14 @@ const HomeScreen = () => {
                             styles.viewModeButton,
                             isDarkMode && styles.viewModeButtonDark,
                             viewMode === 'week' && styles.viewModeButtonActive,
+                            isDarkMode && viewMode === 'week' && styles.viewModeButtonActiveDark,
                         ]}>
                         <Text
                             style={[
                                 styles.viewModeButtonText,
                                 isDarkMode && styles.viewModeButtonTextDark,
                                 viewMode === 'week' && styles.viewModeButtonTextActive,
+                                isDarkMode && viewMode === 'week' && styles.viewModeButtonTextActiveDark,
                             ]}>
                             周
                         </Text>
@@ -287,12 +320,14 @@ const HomeScreen = () => {
                             styles.viewModeButton,
                             isDarkMode && styles.viewModeButtonDark,
                             viewMode === 'day' && styles.viewModeButtonActive,
+                            isDarkMode && viewMode === 'day' && styles.viewModeButtonActiveDark,
                         ]}>
                         <Text
                             style={[
                                 styles.viewModeButtonText,
                                 isDarkMode && styles.viewModeButtonTextDark,
                                 viewMode === 'day' && styles.viewModeButtonTextActive,
+                                isDarkMode && viewMode === 'day' && styles.viewModeButtonTextActiveDark,
                             ]}>
                             日
                         </Text>
@@ -300,74 +335,56 @@ const HomeScreen = () => {
                 </View>
 
                 {viewMode === 'day' ? (
-                    <View style={styles.dayNavRow}>
+                    <View style={[styles.dayNavRow, isDarkMode && styles.dayNavRowDark]}>
                         <TouchableOpacity
                             onPress={() => shiftSelectedDate(-1)}
                             accessibilityRole="button"
                             style={[styles.dayNavButton, isDarkMode && styles.dayNavButtonDark]}>
-                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textPrimaryDark]}>
                                 上一天
                             </Text>
                         </TouchableOpacity>
-                        <Text style={[styles.dayNavTitle, isDarkMode && styles.textDark]}>
+                        <Text style={[styles.dayNavTitle, isDarkMode && styles.textPrimaryDark]}>
                             {selectedDate}
                         </Text>
                         <TouchableOpacity
                             onPress={() => shiftSelectedDate(1)}
                             accessibilityRole="button"
                             style={[styles.dayNavButton, isDarkMode && styles.dayNavButtonDark]}>
-                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.dayNavButtonText, isDarkMode && styles.textPrimaryDark]}>
                                 下一天
                             </Text>
                         </TouchableOpacity>
                     </View>
                 ) : viewMode === 'week' ? (
-                    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
-                        <WeekCalendar
-                            current={selectedDate}
-                            markedDates={markedDates}
-                            theme={{
-                                backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-                                calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
-                                textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
-                                selectedDayBackgroundColor: '#2196F3',
-                                selectedDayTextColor: '#ffffff',
-                                todayTextColor: '#2196F3',
-                                dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
-                                textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
-                                monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
-                                arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
-                            }}
-                        />
-                    </CalendarProvider>
+                    <View style={[styles.calendarCard, isDarkMode && styles.calendarCardDark]}>
+                        <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+                            <WeekCalendar
+                                current={selectedDate}
+                                markedDates={markedDates}
+                                theme={calendarTheme}
+                            />
+                        </CalendarProvider>
+                    </View>
                 ) : (
-                    <Calendar
-                        current={selectedDate}
-                        onDayPress={onDayPress}
-                        markedDates={markedDates}
-                        theme={{
-                            backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-                            calendarBackground: isDarkMode ? '#1a1a1a' : '#ffffff',
-                            textSectionTitleColor: isDarkMode ? '#b6c1cd' : '#2d4150',
-                            selectedDayBackgroundColor: '#2196F3',
-                            selectedDayTextColor: '#ffffff',
-                            todayTextColor: '#2196F3',
-                            dayTextColor: isDarkMode ? '#d9e1e8' : '#2d4150',
-                            textDisabledColor: isDarkMode ? '#444444' : '#d9e1e8',
-                            monthTextColor: isDarkMode ? '#ffffff' : '#2d4150',
-                            arrowColor: isDarkMode ? '#ffffff' : '#2d4150',
-                        }}
-                    />
+                    <View style={[styles.calendarCard, isDarkMode && styles.calendarCardDark]}>
+                        <Calendar
+                            current={selectedDate}
+                            onDayPress={onDayPress}
+                            markedDates={markedDates}
+                            theme={calendarTheme}
+                        />
+                    </View>
                 )}
 
                 {selectedDate ? (
                     <View style={styles.eventSection}>
                         <View style={styles.eventHeaderRow}>
-                            <Text style={[styles.eventTitle, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.eventTitle, isDarkMode && styles.textPrimaryDark]}>
                                 {selectedDate} 的日程
                             </Text>
                             <TouchableOpacity
-                                style={styles.addButton}
+                                style={[styles.addButton, isDarkMode && styles.addButtonDark]}
                                 onPress={openAddModal}
                                 accessibilityRole="button">
                                 <Text style={styles.addButtonText}>添加日程</Text>
@@ -375,8 +392,8 @@ const HomeScreen = () => {
                         </View>
 
                         {selectedEvents.length === 0 ? (
-                            <View style={styles.eventCard}>
-                                <Text style={[styles.eventText, isDarkMode && styles.textDark]}>
+                            <View style={[styles.eventCard, isDarkMode && styles.eventCardDark]}>
+                                <Text style={[styles.eventText, isDarkMode && styles.textSecondaryDark]}>
                                     暂无日程
                                 </Text>
                             </View>
@@ -385,13 +402,13 @@ const HomeScreen = () => {
                                 {selectedEvents.map(event => (
                                     <TouchableOpacity
                                         key={event.id}
-                                        style={styles.eventItem}
+                                        style={[styles.eventItem, isDarkMode && styles.eventItemDark]}
                                         onPress={() => openDetailModal(event)}
                                         accessibilityRole="button">
                                         <Text
                                             style={[
                                                 styles.eventItemTitle,
-                                                isDarkMode && styles.textDark,
+                                                isDarkMode && styles.textPrimaryDark,
                                             ]}
                                             numberOfLines={1}>
                                             {event.title}
@@ -399,7 +416,7 @@ const HomeScreen = () => {
                                         <Text
                                             style={[
                                                 styles.eventItemMeta,
-                                                isDarkMode && styles.textDark,
+                                                isDarkMode && styles.textSecondaryDark,
                                             ]}
                                             numberOfLines={1}>
                                             {(event.startTime || event.endTime)
@@ -410,7 +427,7 @@ const HomeScreen = () => {
                                             <Text
                                                 style={[
                                                     styles.eventItemMeta,
-                                                    isDarkMode && styles.textDark,
+                                                    isDarkMode && styles.textSecondaryDark,
                                                 ]}
                                                 numberOfLines={1}>
                                                 提醒：提前 {event.reminderMinutes} 分钟
@@ -420,7 +437,7 @@ const HomeScreen = () => {
                                             <Text
                                                 style={[
                                                     styles.eventItemNotes,
-                                                    isDarkMode && styles.textDark,
+                                                    isDarkMode && styles.textSecondaryDark,
                                                 ]}
                                                 numberOfLines={2}>
                                                 {event.notes}
@@ -441,10 +458,10 @@ const HomeScreen = () => {
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalBackdrop} />
                         <View style={[styles.modalCard, isDarkMode && styles.modalCardDark]}>
-                            <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.modalTitle, isDarkMode && styles.textPrimaryDark]}>
                                 添加日程
                             </Text>
-                            <Text style={[styles.modalSubtitle, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.modalSubtitle, isDarkMode && styles.textSecondaryDark]}>
                                 日期：{selectedDate}
                             </Text>
 
@@ -519,30 +536,30 @@ const HomeScreen = () => {
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalBackdrop} />
                         <View style={[styles.modalCard, isDarkMode && styles.modalCardDark]}>
-                            <Text style={[styles.modalTitle, isDarkMode && styles.textDark]}>
+                            <Text style={[styles.modalTitle, isDarkMode && styles.textPrimaryDark]}>
                                 日程详情
                             </Text>
 
                             {detailEvent ? (
                                 <>
-                                    <Text style={[styles.modalSubtitle, isDarkMode && styles.textDark]}>
+                                    <Text style={[styles.modalSubtitle, isDarkMode && styles.textSecondaryDark]}>
                                         日期：{detailEvent.date}
                                     </Text>
 
                                     <View style={styles.detailRow}>
-                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textSecondaryDark]}>
                                             标题
                                         </Text>
-                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textPrimaryDark]}>
                                             {detailEvent.title}
                                         </Text>
                                     </View>
 
                                     <View style={styles.detailRow}>
-                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textSecondaryDark]}>
                                             时间
                                         </Text>
-                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textPrimaryDark]}>
                                             {(detailEvent.startTime || detailEvent.endTime)
                                                 ? `${detailEvent.startTime ?? ''}${detailEvent.endTime ? ` - ${detailEvent.endTime}` : ''}`
                                                 : '全天'}
@@ -550,10 +567,10 @@ const HomeScreen = () => {
                                     </View>
 
                                     <View style={styles.detailRow}>
-                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textSecondaryDark]}>
                                             提醒
                                         </Text>
-                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textPrimaryDark]}>
                                             {detailEvent.reminderMinutes && detailEvent.reminderMinutes > 0
                                                 ? `提前 ${detailEvent.reminderMinutes} 分钟`
                                                 : '无'}
@@ -561,10 +578,10 @@ const HomeScreen = () => {
                                     </View>
 
                                     <View style={styles.detailRow}>
-                                        <Text style={[styles.detailLabel, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailLabel, isDarkMode && styles.textSecondaryDark]}>
                                             备注
                                         </Text>
-                                        <Text style={[styles.detailValue, isDarkMode && styles.textDark]}>
+                                        <Text style={[styles.detailValue, isDarkMode && styles.textPrimaryDark]}>
                                             {detailEvent.notes?.trim() ? detailEvent.notes : '无'}
                                         </Text>
                                     </View>
@@ -598,10 +615,10 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#F2F2F7',
     },
     containerDark: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: '#0B0B0F',
     },
     header: {
         padding: 20,
@@ -619,75 +636,122 @@ const styles = StyleSheet.create({
     },
     viewModeRow: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
-        // marginBottom: 10,
-        margin: 10,
-        gap: 10,
+        marginHorizontal: 12,
+        marginTop: 10,
+        marginBottom: 12,
+        padding: 4,
+        borderRadius: 12,
+        backgroundColor: '#E5E7EB',
+    },
+    viewModeRowDark: {
+        backgroundColor: '#27272A',
     },
     viewModeButton: {
         flex: 1,
         paddingVertical: 10,
         borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#d9e1e8',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         alignItems: 'center',
     },
     viewModeButtonDark: {
-        borderColor: '#444444',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'transparent',
     },
     viewModeButtonActive: {
-        borderColor: '#2196F3',
-        backgroundColor: '#2196F3',
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000000',
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 2,
+    },
+    viewModeButtonActiveDark: {
+        backgroundColor: '#1C1C1E',
     },
     viewModeButtonText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#2d4150',
+        fontSize: 13,
+        lineHeight: 18,
+        fontWeight: '600',
+        color: '#374151',
     },
     viewModeButtonTextDark: {
-        color: '#ffffff',
+        color: '#E5E7EB',
     },
     viewModeButtonTextActive: {
-        color: '#ffffff',
+        color: '#111827',
+        fontWeight: '700',
+    },
+    viewModeButtonTextActiveDark: {
+        color: '#F4F4F5',
+    },
+    calendarCard: {
+        marginHorizontal: 12,
+        borderRadius: 16,
+        backgroundColor: '#FFFFFF',
+        paddingVertical: 8,
+        paddingHorizontal: 8,
+        shadowColor: '#000000',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 2,
+    },
+    calendarCardDark: {
+        backgroundColor: '#141418',
     },
     dayNavRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
+        marginHorizontal: 12,
         marginBottom: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 16,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000000',
+        shadowOpacity: 0.06,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 2,
         gap: 10,
+    },
+    dayNavRowDark: {
+        backgroundColor: '#141418',
     },
     dayNavButton: {
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F3F4F6',
     },
     dayNavButtonDark: {
-        backgroundColor: '#1a1a1a',
-        borderWidth: 1,
-        borderColor: '#444444',
+        backgroundColor: '#1C1C1E',
     },
     dayNavButtonText: {
         fontSize: 13,
+        lineHeight: 18,
         fontWeight: '600',
-        color: '#2d4150',
+        color: '#111827',
     },
     dayNavTitle: {
         flex: 1,
         textAlign: 'center',
-        fontSize: 14,
+        fontSize: 15,
+        lineHeight: 20,
         fontWeight: '700',
-        color: '#000000',
+        color: '#111827',
     },
-    textDark: {
-        color: '#ffffff',
+
+    textPrimaryDark: {
+        color: '#F4F4F5',
+    },
+    textSecondaryDark: {
+        color: '#A1A1AA',
     },
     eventSection: {
-        padding: 20,
+        paddingHorizontal: 12,
+        paddingTop: 16,
+        paddingBottom: 20,
     },
     eventHeaderRow: {
         flexDirection: 'row',
@@ -696,9 +760,10 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     eventTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#000000',
+        fontSize: 17,
+        lineHeight: 22,
+        fontWeight: '700',
+        color: '#111827',
     },
     addButton: {
         paddingHorizontal: 12,
@@ -706,43 +771,67 @@ const styles = StyleSheet.create({
         backgroundColor: '#2196F3',
         borderRadius: 8,
     },
+    addButtonDark: {
+        backgroundColor: '#2196F3',
+    },
     addButtonText: {
         color: '#ffffff',
         fontSize: 14,
+        lineHeight: 18,
         fontWeight: '600',
     },
     eventCard: {
-        backgroundColor: '#f5f5f5',
-        padding: 15,
-        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        borderRadius: 16,
+        shadowColor: '#000000',
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 2,
+    },
+    eventCardDark: {
+        backgroundColor: '#141418',
     },
     eventText: {
         fontSize: 14,
-        color: '#666666',
+        lineHeight: 20,
+        color: '#6B7280',
     },
 
     eventList: {
         gap: 10,
     },
     eventItem: {
-        backgroundColor: '#f5f5f5',
-        padding: 15,
-        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        padding: 14,
+        borderRadius: 14,
+        shadowColor: '#000000',
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 1,
+    },
+    eventItemDark: {
+        backgroundColor: '#141418',
     },
     eventItemTitle: {
         fontSize: 16,
+        lineHeight: 22,
         fontWeight: '600',
-        color: '#000000',
+        color: '#111827',
         marginBottom: 6,
     },
     eventItemMeta: {
         fontSize: 13,
-        color: '#666666',
+        lineHeight: 18,
+        color: '#6B7280',
     },
     eventItemNotes: {
         marginTop: 8,
         fontSize: 13,
-        color: '#666666',
+        lineHeight: 18,
+        color: '#6B7280',
     },
 
     detailRow: {
@@ -750,13 +839,15 @@ const styles = StyleSheet.create({
     },
     detailLabel: {
         fontSize: 12,
-        color: '#666666',
+        lineHeight: 16,
+        color: '#6B7280',
         marginBottom: 4,
         fontWeight: '600',
     },
     detailValue: {
         fontSize: 14,
-        color: '#000000',
+        lineHeight: 20,
+        color: '#111827',
     },
 
     modalOverlay: {
@@ -771,38 +862,44 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         backgroundColor: '#ffffff',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 16,
+        shadowColor: '#000000',
+        shadowOpacity: 0.08,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 3,
     },
     modalCardDark: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: '#141418',
     },
     modalTitle: {
         fontSize: 18,
+        lineHeight: 24,
         fontWeight: '700',
-        color: '#000000',
+        color: '#111827',
         marginBottom: 6,
     },
     modalSubtitle: {
         fontSize: 13,
-        color: '#666666',
+        lineHeight: 18,
+        color: '#6B7280',
         marginBottom: 12,
     },
     input: {
-        borderWidth: 1,
-        borderColor: '#d9e1e8',
-        borderRadius: 8,
+        borderWidth: 0,
+        borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 10,
         fontSize: 14,
+        lineHeight: 20,
         color: '#000000',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#F3F4F6',
         marginBottom: 10,
     },
     inputDark: {
-        borderColor: '#444444',
-        color: '#ffffff',
-        backgroundColor: '#1a1a1a',
+        color: '#F4F4F5',
+        backgroundColor: '#1C1C1E',
     },
     timeRow: {
         flexDirection: 'row',
@@ -832,12 +929,13 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     cancelButton: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F3F4F6',
     },
     cancelButtonText: {
-        color: '#2d4150',
+        color: '#111827',
         fontWeight: '600',
         fontSize: 14,
+        lineHeight: 18,
     },
     saveButton: {
         backgroundColor: '#2196F3',
@@ -846,15 +944,17 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: '700',
         fontSize: 14,
+        lineHeight: 18,
     },
 
     deleteButton: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F3F4F6',
     },
     deleteButtonText: {
         color: '#FF3B30', // UIColor.systemRed,
         fontWeight: '700',
         fontSize: 14,
+        lineHeight: 18,
     },
 });
 
