@@ -49,6 +49,12 @@ cd ..
 npm run ios
 ```
 
+## 报错端口已占用
+
+```bash
+pkill -f react-native
+```
+
 ## 架构说明
 
 - **src/screens**: UI 屏幕组件
