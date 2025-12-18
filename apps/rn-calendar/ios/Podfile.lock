@@ -1059,6 +1059,11 @@ PODS:
     - React-Core
   - RNLocalize (3.6.0):
     - React-Core
+  - RNNotifee (9.1.8):
+    - React-Core
+    - RNNotifee/NotifeeCore (= 9.1.8)
+  - RNNotifee/NotifeeCore (9.1.8):
+    - React-Core
   - RNScreens (3.34.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1121,6 +1126,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
+  - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -1232,6 +1238,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
+  RNNotifee:
+    :path: "../node_modules/@notifee/react-native"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Yoga:
@@ -1290,6 +1298,7 @@ SPEC CHECKSUMS:
   ReactCommon: 03a07a32cbaf798b01e7025001d6fa5a862709f6
   RNCAsyncStorage: b6410dead2732b5c72a7fdb1ecb5651bbcf4674b
   RNLocalize: 5c5e0454cb8a73f173f27a6353630e17684f07dd
+  RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
   RNScreens: 2597a28731cc8e967467c55b8844f43655af5aef
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 57d2ffe418d024d56f8b0047f335c677e4c4d9ac

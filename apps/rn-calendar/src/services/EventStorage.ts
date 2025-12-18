@@ -24,6 +24,13 @@ const normalizeTime = (value?: string): string | undefined => {
     return trimmed.length ? trimmed : undefined;
 };
 
+const normalizeReminderMinutes = (value?: number): number | undefined => {
+    if (value === undefined || value === null) return undefined;
+    if (!Number.isFinite(value)) return undefined;
+    if (value <= 0) return undefined;
+    return Math.floor(value);
+};
+
 export class EventStorage {
     static async getAllEventsByDate(): Promise<EventsByDate> {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -46,6 +53,7 @@ export class EventStorage {
             startTime: normalizeTime(input.startTime),
             endTime: normalizeTime(input.endTime),
             notes: normalizeTime(input.notes),
+            reminderMinutes: normalizeReminderMinutes(input.reminderMinutes),
             createdAt: now,
             updatedAt: now,
         };
@@ -56,6 +64,27 @@ export class EventStorage {
 
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
         return event;
+    }
+
+    static async updateEvent(date: string, eventId: string, patch: Partial<CalendarEvent>): Promise<CalendarEvent | null> {
+        const all = await EventStorage.getAllEventsByDate();
+        const list = all[date] ?? [];
+        const index = list.findIndex(e => e.id === eventId);
+        if (index === -1) return null;
+
+        const now = new Date().toISOString();
+        const updated: CalendarEvent = {
+            ...list[index],
+            ...patch,
+            updatedAt: now,
+        };
+
+        const next = [...list];
+        next[index] = updated;
+        all[date] = next;
+
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+        return updated;
     }
 }
 

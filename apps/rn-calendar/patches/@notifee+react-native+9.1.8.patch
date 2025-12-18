@@ -1,0 +1,31 @@
+diff --git a/node_modules/@notifee/react-native/ios/NotifeeCore/NotifeeCore.m b/node_modules/@notifee/react-native/ios/NotifeeCore/NotifeeCore.m
+index 8f308dd..39f7093 100644
+--- a/node_modules/@notifee/react-native/ios/NotifeeCore/NotifeeCore.m
++++ b/node_modules/@notifee/react-native/ios/NotifeeCore/NotifeeCore.m
+@@ -735,7 +735,7 @@ + (void)getInitialNotification:(notifeeMethodNSDictionaryBlock)block {
+ 
+ + (void)setBadgeCount:(NSInteger)count withBlock:(notifeeMethodVoidBlock)block {
+   if (![NotifeeCoreUtil isAppExtension]) {
+-    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, visionOS 1.0, *)) {
++    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, *)) {
+       UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+       [center setBadgeCount:count
+           withCompletionHandler:^(NSError *error) {
+@@ -779,7 +779,7 @@ + (void)incrementBadgeCount:(NSInteger)incrementBy withBlock:(notifeeMethodVoidB
+ 
+     NSInteger newCount = currentCount + incrementBy;
+ 
+-    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, visionOS 1.0, *)) {
++    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, *)) {
+       UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+       [center setBadgeCount:newCount
+           withCompletionHandler:^(NSError *error) {
+@@ -803,7 +803,7 @@ + (void)decrementBadgeCount:(NSInteger)decrementBy withBlock:(notifeeMethodVoidB
+     UIApplication *application = (UIApplication *)[NotifeeCoreUtil notifeeUIApplication];
+     NSInteger currentCount = application.applicationIconBadgeNumber;
+     NSInteger newCount = currentCount - decrementBy;
+-    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, visionOS 1.0, *)) {
++    if (@available(iOS 16.0, macOS 10.13, macCatalyst 16.0, tvOS 16.0, *)) {
+       UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+       [center setBadgeCount:newCount
+           withCompletionHandler:^(NSError *error) {

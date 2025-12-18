@@ -15,6 +15,7 @@ import { addDays, format, parseISO } from 'date-fns';
 
 import type { CalendarEvent } from '../models/CalendarEvent';
 import { EventStorage } from '../services/EventStorage';
+import { ReminderService } from '../services/ReminderService';
 
 const HomeScreen = () => {
     const isDarkMode = useColorScheme() === 'dark';
@@ -31,6 +32,7 @@ const HomeScreen = () => {
     const [newStartTime, setNewStartTime] = useState('');
     const [newEndTime, setNewEndTime] = useState('');
     const [newNotes, setNewNotes] = useState('');
+    const [newReminderMinutes, setNewReminderMinutes] = useState('');
     const [formError, setFormError] = useState('');
 
     useEffect(() => {
@@ -93,6 +95,7 @@ const HomeScreen = () => {
         setNewStartTime('');
         setNewEndTime('');
         setNewNotes('');
+        setNewReminderMinutes('');
         setIsAddModalVisible(true);
     };
 
@@ -127,17 +130,48 @@ const HomeScreen = () => {
             return;
         }
 
+        const reminderRaw = newReminderMinutes.trim();
+        let reminderMinutes: number | undefined;
+        if (reminderRaw) {
+            const parsed = Number(reminderRaw);
+            if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed)) {
+                setFormError('提醒分钟应为非负整数');
+                return;
+            }
+            if (parsed > 0 && !start) {
+                setFormError('设置提醒需要填写开始时间');
+                return;
+            }
+            reminderMinutes = parsed;
+        }
+
         const created = await EventStorage.addEvent({
             date: selectedDate,
             title,
             startTime: start,
             endTime: end,
             notes: newNotes.trim(),
+            reminderMinutes,
         });
+
+        let finalEvent = created;
+        if (created.reminderMinutes && created.reminderMinutes > 0) {
+            const notificationId = await ReminderService.scheduleReminder(created);
+            if (!notificationId) {
+                setFormError('提醒创建失败（可能未授权或提醒时间已过）');
+                return;
+            }
+
+            const updated = await EventStorage.updateEvent(created.date, created.id, {
+                notificationId,
+                reminderMinutes: created.reminderMinutes,
+            });
+            if (updated) finalEvent = updated;
+        }
 
         setEventsByDate(prev => {
             const next = { ...prev };
-            next[selectedDate] = [...(next[selectedDate] ?? []), created];
+            next[selectedDate] = [...(next[selectedDate] ?? []), finalEvent];
             return next;
         });
 
@@ -312,6 +346,16 @@ const HomeScreen = () => {
                                                 ? `${event.startTime ?? ''}${event.endTime ? ` - ${event.endTime}` : ''}`
                                                 : '全天'}
                                         </Text>
+                                        {event.reminderMinutes && event.reminderMinutes > 0 ? (
+                                            <Text
+                                                style={[
+                                                    styles.eventItemMeta,
+                                                    isDarkMode && styles.textDark,
+                                                ]}
+                                                numberOfLines={1}>
+                                                提醒：提前 {event.reminderMinutes} 分钟
+                                            </Text>
+                                        ) : null}
                                         {event.notes ? (
                                             <Text
                                                 style={[
@@ -374,6 +418,15 @@ const HomeScreen = () => {
                                 placeholderTextColor={isDarkMode ? '#b6c1cd' : '#666666'}
                                 style={[styles.input, styles.notesInput, isDarkMode && styles.inputDark]}
                                 multiline
+                            />
+
+                            <TextInput
+                                value={newReminderMinutes}
+                                onChangeText={setNewReminderMinutes}
+                                placeholder="提醒（提前分钟，可选，如 10）"
+                                placeholderTextColor={isDarkMode ? '#b6c1cd' : '#666666'}
+                                keyboardType="number-pad"
+                                style={[styles.input, isDarkMode && styles.inputDark]}
                             />
 
                             {formError ? (

@@ -5,6 +5,8 @@ export type CalendarEvent = {
     startTime?: string; // HH:mm
     endTime?: string; // HH:mm
     notes?: string;
+    reminderMinutes?: number;
+    notificationId?: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
 };
@@ -15,4 +17,5 @@ export type CreateCalendarEventInput = {
     startTime?: string;
     endTime?: string;
     notes?: string;
+    reminderMinutes?: number;
 };
