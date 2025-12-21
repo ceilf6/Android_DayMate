@@ -11,6 +11,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.LunarUtils
 import com.example.daymate.utils.PriorityColorUtils
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -33,7 +34,8 @@ class MonthView @JvmOverloads constructor(
     private val cellRect = Rect()
     private val gestureDetector = GestureDetector(context, MonthViewGestureListener())
     
-    private val dayTextSize = 48f
+    private val dayTextSize = 42f
+    private val lunarTextSize = 22f
     private val eventTextSize = 32f
     private val padding = 16f
     
@@ -97,7 +99,8 @@ class MonthView @JvmOverloads constructor(
         
         paint.color = ContextCompat.getColor(context, R.color.secondary_text)
         for (col in 0 until firstDayOfWeek) {
-            drawDayCell(canvas, row, col, prevDay, false)
+            val date = prevMonth.atDay(prevDay)
+            drawDayCell(canvas, row, col, prevDay, date, false)
             prevDay++
         }
         
@@ -111,19 +114,21 @@ class MonthView @JvmOverloads constructor(
             val isSelected = selectedDate == date
             val isToday = date == LocalDate.now()
             
-            drawDayCell(canvas, currentRow, col, dayOfMonth, isSelected, isToday)
+            drawDayCell(canvas, currentRow, col, dayOfMonth, date, isSelected, isToday)
         }
         
         // 绘制下个月的日期（灰色）
         paint.color = ContextCompat.getColor(context, R.color.secondary_text)
         var nextDay = 1
+        val nextMonth = yearMonth.plusMonths(1)
         val totalCells = 42 // 6行 x 7列
         val usedCells = firstDayOfWeek + daysInMonth
         
         for (cell in usedCells until totalCells) {
             val row = cell / 7 + 1
             val col = cell % 7
-            drawDayCell(canvas, row, col, nextDay, false)
+            val date = nextMonth.atDay(nextDay)
+            drawDayCell(canvas, row, col, nextDay, date, false)
             nextDay++
         }
     }
@@ -133,6 +138,7 @@ class MonthView @JvmOverloads constructor(
         row: Int,
         col: Int,
         day: Int,
+        date: LocalDate,
         isSelected: Boolean = false,
         isToday: Boolean = false
     ) {
@@ -146,12 +152,18 @@ class MonthView @JvmOverloads constructor(
             (y + cellHeight).toInt()
         )
         
+        // 获取农历信息
+        val lunarDate = LunarUtils.solarToLunar(date)
+        val lunarHoliday = LunarUtils.getLunarHoliday(date)
+        val solarHoliday = LunarUtils.getSolarHoliday(date)
+        val isHoliday = lunarHoliday != null || solarHoliday != null || lunarDate.solarTerm != null
+        
         // 绘制选中背景
         if (isSelected) {
             paint.color = ContextCompat.getColor(context, R.color.primary)
             canvas.drawCircle(
                 cellRect.centerX().toFloat(),
-                cellRect.centerY().toFloat(),
+                cellRect.centerY().toFloat() - 8f,
                 cellWidth / 3,
                 paint
             )
@@ -162,7 +174,7 @@ class MonthView @JvmOverloads constructor(
             paint.color = ContextCompat.getColor(context, R.color.accent)
             canvas.drawCircle(
                 cellRect.centerX().toFloat(),
-                cellRect.centerY().toFloat(),
+                cellRect.centerY().toFloat() - 8f,
                 cellWidth / 4,
                 paint
             )
@@ -179,7 +191,40 @@ class MonthView @JvmOverloads constructor(
         canvas.drawText(
             day.toString(),
             cellRect.centerX().toFloat(),
-            cellRect.centerY().toFloat() + paint.textSize / 3,
+            cellRect.centerY().toFloat() - 8f + paint.textSize / 3,
+            paint
+        )
+        
+        // 绘制农历日期
+        paint.textSize = lunarTextSize
+        
+        // 确定农历显示文字和颜色
+        val lunarText = when {
+            solarHoliday != null -> solarHoliday
+            lunarHoliday != null -> lunarHoliday
+            lunarDate.solarTerm != null -> lunarDate.solarTerm
+            lunarDate.day == 1 -> {
+                val leap = if (lunarDate.isLeapMonth) "闰" else ""
+                "${leap}${lunarDate.monthStr}月"
+            }
+            else -> lunarDate.dayStr
+        }
+        
+        // 设置农历文字颜色
+        paint.color = when {
+            isSelected || isToday -> ContextCompat.getColor(context, android.R.color.white)
+            solarHoliday != null -> ContextCompat.getColor(context, R.color.priority_high)
+            lunarHoliday != null -> ContextCompat.getColor(context, R.color.priority_high)
+            lunarDate.solarTerm != null -> ContextCompat.getColor(context, R.color.accent)
+            lunarDate.day == 1 -> ContextCompat.getColor(context, R.color.primary)
+            else -> ContextCompat.getColor(context, R.color.secondary_text)
+        }
+        
+        // 绘制农历文字
+        canvas.drawText(
+            lunarText,
+            cellRect.centerX().toFloat(),
+            cellRect.centerY().toFloat() + dayTextSize / 2 + 8f,
             paint
         )
     }

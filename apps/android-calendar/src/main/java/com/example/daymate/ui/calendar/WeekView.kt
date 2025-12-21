@@ -11,6 +11,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.daymate.R
 import com.example.daymate.data.Event
+import com.example.daymate.utils.LunarUtils
 import com.example.daymate.utils.PriorityColorUtils
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,7 +32,8 @@ class WeekView @JvmOverloads constructor(
     private val cellRect = Rect()
     private val gestureDetector = GestureDetector(context, WeekViewGestureListener())
     
-    private val dayTextSize = 48f
+    private val dayTextSize = 42f
+    private val lunarTextSize = 20f
     private val eventTextSize = 32f
     private val padding = 16f
     
@@ -39,7 +41,7 @@ class WeekView @JvmOverloads constructor(
     private var cellHeight = 0f
     private var hourHeight = 0f
     private val hourCount = 24
-    private val headerHeight = 120f
+    private val headerHeight = 140f
     
     // 缓存时间标签，避免频繁创建对象
     private val timeLabels = Array(24) { hour -> String.format("%02d:00", hour) }
@@ -115,17 +117,46 @@ class WeekView @JvmOverloads constructor(
             canvas.drawText(
                 date.dayOfMonth.toString(),
                 cellRect.centerX().toFloat(),
-                cellRect.centerY().toFloat() - 20f,
+                cellRect.centerY().toFloat() - 30f,
                 paint
             )
             
             // 绘制星期标签 - 根据日期的实际星期获取
             val dayOfWeekIndex = date.dayOfWeek.value % 7  // 转换为周日=0, 周一=1, ..., 周六=6
-            paint.textSize = 32f
+            paint.textSize = 28f
             canvas.drawText(
                 weekDays[dayOfWeekIndex],
                 cellRect.centerX().toFloat(),
-                cellRect.centerY().toFloat() + 20f,
+                cellRect.centerY().toFloat() + 5f,
+                paint
+            )
+            
+            // 绘制农历日期
+            val lunarDate = LunarUtils.solarToLunar(date)
+            val lunarHoliday = LunarUtils.getLunarHoliday(date)
+            val solarHoliday = LunarUtils.getSolarHoliday(date)
+            
+            // 确定农历显示文字
+            val lunarText = when {
+                solarHoliday != null -> solarHoliday
+                lunarHoliday != null -> lunarHoliday
+                lunarDate.solarTerm != null -> lunarDate.solarTerm
+                else -> lunarDate.dayStr
+            }
+            
+            // 设置农历文字颜色
+            paint.textSize = lunarTextSize
+            paint.color = when {
+                isSelected || isToday -> ContextCompat.getColor(context, android.R.color.white)
+                solarHoliday != null || lunarHoliday != null -> ContextCompat.getColor(context, R.color.priority_high)
+                lunarDate.solarTerm != null -> ContextCompat.getColor(context, R.color.accent)
+                else -> ContextCompat.getColor(context, R.color.secondary_text)
+            }
+            
+            canvas.drawText(
+                lunarText,
+                cellRect.centerX().toFloat(),
+                cellRect.centerY().toFloat() + 35f,
                 paint
             )
             

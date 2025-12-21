@@ -15,6 +15,7 @@ import com.example.daymate.ui.dialog.DailyEventsDialogFragment
 import com.example.daymate.ui.event.AddEditEventDialogFragment
 import com.example.daymate.ui.event.EventDetailsDialogFragment
 import com.example.daymate.ui.importexport.ImportExportDialogFragment
+import com.example.daymate.utils.LunarUtils
 import com.example.daymate.viewmodel.CalendarViewModel
 import com.example.daymate.viewmodel.CalendarViewModelFactory
 import com.example.daymate.viewmodel.CalendarViewMode
@@ -224,6 +225,9 @@ class CalendarFragment : Fragment() {
                 binding.monthView.setYearMonthProgrammatically(yearMonth)
                 binding.monthView.setSelectedDate(date)
                 binding.tvCurrentDate.text = yearMonth.format(dateFormatter)
+                // 更新农历信息
+                val lunarDate = LunarUtils.solarToLunar(date)
+                binding.tvLunarDate.text = "${lunarDate.yearGanZhi}${lunarDate.yearShengXiao}年 ${LunarUtils.getLunarMonthInfo(date)}"
             }
             CalendarViewMode.WEEK -> {
                 binding.weekView.setWeekStartDateProgrammatically(date)
@@ -231,10 +235,19 @@ class CalendarFragment : Fragment() {
                 val weekStart = binding.weekView.getCurrentWeekStartDate()
                 val weekEnd = weekStart.plusDays(6)
                 binding.tvCurrentDate.text = "${weekStart.monthValue}/${weekStart.dayOfMonth} - ${weekEnd.monthValue}/${weekEnd.dayOfMonth}"
+                // 更新农历信息
+                val lunarDate = LunarUtils.solarToLunar(date)
+                binding.tvLunarDate.text = "${lunarDate.yearGanZhi}${lunarDate.yearShengXiao}年 ${LunarUtils.getLunarMonthInfo(date)}"
             }
             CalendarViewMode.DAY -> {
                 binding.dayView.setSelectedDateProgrammatically(date)
                 binding.tvCurrentDate.text = date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE"))
+                // 更新农历信息（显示完整的农历日期）
+                val lunarDate = LunarUtils.solarToLunar(date)
+                val leap = if (lunarDate.isLeapMonth) "闰" else ""
+                val holidays = LunarUtils.getAllHolidays(date)
+                val holidayStr = if (holidays.isNotEmpty()) " ${holidays.joinToString(" ")}" else ""
+                binding.tvLunarDate.text = "${lunarDate.yearGanZhi}年 ${leap}${lunarDate.monthStr}月${lunarDate.dayStr}$holidayStr"
             }
         }
     }
@@ -253,15 +266,29 @@ class CalendarFragment : Fragment() {
     
     private fun updateDateDisplayForMonth(yearMonth: YearMonth) {
         binding.tvCurrentDate.text = yearMonth.format(dateFormatter)
+        // 更新农历信息（使用月份中旬的日期来获取农历月份）
+        val midMonthDate = yearMonth.atDay(15)
+        val lunarDate = LunarUtils.solarToLunar(midMonthDate)
+        binding.tvLunarDate.text = "${lunarDate.yearGanZhi}${lunarDate.yearShengXiao}年 ${LunarUtils.getLunarMonthInfo(midMonthDate)}"
     }
     
     private fun updateDateDisplayForWeek(weekStartDate: LocalDate) {
         val weekEndDate = weekStartDate.plusDays(6)
         binding.tvCurrentDate.text = "${weekStartDate.monthValue}/${weekStartDate.dayOfMonth} - ${weekEndDate.monthValue}/${weekEndDate.dayOfMonth}"
+        // 更新农历信息（使用周中的日期）
+        val midWeekDate = weekStartDate.plusDays(3)
+        val lunarDate = LunarUtils.solarToLunar(midWeekDate)
+        binding.tvLunarDate.text = "${lunarDate.yearGanZhi}${lunarDate.yearShengXiao}年 ${LunarUtils.getLunarMonthInfo(midWeekDate)}"
     }
     
     private fun updateDateDisplayForDay(date: LocalDate) {
         binding.tvCurrentDate.text = date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE"))
+        // 更新农历信息（显示完整的农历日期）
+        val lunarDate = LunarUtils.solarToLunar(date)
+        val leap = if (lunarDate.isLeapMonth) "闰" else ""
+        val holidays = LunarUtils.getAllHolidays(date)
+        val holidayStr = if (holidays.isNotEmpty()) " ${holidays.joinToString(" ")}" else ""
+        binding.tvLunarDate.text = "${lunarDate.yearGanZhi}年 ${leap}${lunarDate.monthStr}月${lunarDate.dayStr}$holidayStr"
     }
     
     private fun showAddEventDialog(selectedDateTime: LocalDateTime? = null) {

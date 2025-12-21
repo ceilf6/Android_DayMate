@@ -39,16 +39,35 @@
                         android:contentDescription="上一页"
                         app:tint="@android:color/white" />
 
-                    <TextView
-                        android:id="@+id/tvCurrentDate"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="2024年01月"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvCurrentDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="2024年01月"
+                            android:textColor="@android:color/white"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvLunarDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="甲辰龙年"
+                            android:textColor="@android:color/white"
+                            android:textSize="12sp"
+                            android:alpha="0.85"
+                            android:layout_marginTop="2dp" />
+
+                    </LinearLayout>
 
                     <ImageButton
                         android:id="@+id/btnNext"
