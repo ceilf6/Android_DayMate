@@ -19,6 +19,7 @@ import { addDays, format, parseISO } from 'date-fns';
 import type { CalendarEvent } from '../models/CalendarEvent';
 import { EventStorage } from '../services/EventStorage';
 import { ReminderService } from '../services/ReminderService';
+import LunarUtils, { solarToLunar, getLunarShortString, getLunarHoliday, getSolarHoliday, getAllHolidays } from '../utils/LunarUtils';
 
 const HomeScreen = () => {
     const isDarkMode = useColorScheme() === 'dark';
@@ -262,6 +263,87 @@ const HomeScreen = () => {
         [calendarDayFontWeight, isDarkMode],
     );
 
+    // 获取当前选中日期的农历信息
+    const lunarInfo = useMemo(() => {
+        if (!selectedDate) return null;
+        const lunar = solarToLunar(selectedDate);
+        const holidays = getAllHolidays(selectedDate);
+        return {
+            lunar,
+            holidays,
+            yearInfo: `${lunar.yearGanZhi}${lunar.yearShengXiao}年`,
+            monthInfo: `${lunar.isLeapMonth ? '闰' : ''}${lunar.monthStr}月${lunar.dayStr}`,
+        };
+    }, [selectedDate]);
+
+    // 自定义日期组件，显示农历
+    const renderDay = useMemo(() => {
+        return ({ date, state }: any) => {
+            if (!date) return null;
+            
+            const dateString = date.dateString;
+            const isSelected = dateString === selectedDate;
+            const isToday = dateString === today;
+            const isDisabled = state === 'disabled';
+            
+            const lunar = solarToLunar(dateString);
+            const lunarHoliday = getLunarHoliday(dateString);
+            const solarHoliday = getSolarHoliday(dateString);
+            const isHoliday = lunarHoliday || solarHoliday;
+            
+            // 确定农历显示文字
+            let lunarText = getLunarShortString(lunar);
+            if (solarHoliday) lunarText = solarHoliday;
+            else if (lunarHoliday) lunarText = lunarHoliday;
+            
+            // 检查是否有事件
+            const hasEvent = (eventsByDate[dateString] ?? []).length > 0;
+            
+            return (
+                <TouchableOpacity
+                    onPress={() => onDayPress({ dateString })}
+                    style={[
+                        styles.dayContainer,
+                        isSelected && styles.dayContainerSelected,
+                        isToday && !isSelected && styles.dayContainerToday,
+                    ]}
+                    activeOpacity={0.7}
+                >
+                    <Text
+                        style={[
+                            styles.dayText,
+                            isDarkMode && styles.dayTextDark,
+                            isSelected && styles.dayTextSelected,
+                            isToday && !isSelected && styles.dayTextToday,
+                            isDisabled && styles.dayTextDisabled,
+                            isDisabled && isDarkMode && styles.dayTextDisabledDark,
+                        ]}
+                    >
+                        {date.day}
+                    </Text>
+                    <Text
+                        style={[
+                            styles.lunarText,
+                            isDarkMode && styles.lunarTextDark,
+                            isSelected && styles.lunarTextSelected,
+                            isToday && !isSelected && styles.lunarTextToday,
+                            isDisabled && styles.lunarTextDisabled,
+                            isDisabled && isDarkMode && styles.lunarTextDisabledDark,
+                            isHoliday && !isSelected && !isToday && styles.lunarTextHoliday,
+                            lunar.solarTerm && !isHoliday && !isSelected && !isToday && styles.lunarTextSolarTerm,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {lunarText}
+                    </Text>
+                    {hasEvent && !isSelected && (
+                        <View style={styles.eventDot} />
+                    )}
+                </TouchableOpacity>
+            );
+        };
+    }, [selectedDate, today, isDarkMode, eventsByDate, onDayPress]);
+
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
             <ScrollView contentInsetAdjustmentBehavior="automatic">
@@ -334,6 +416,19 @@ const HomeScreen = () => {
                     </TouchableOpacity>
                 </View>
 
+                {/* 农历信息显示 */}
+                {lunarInfo && (
+                    <View style={[styles.lunarInfoCard, isDarkMode && styles.lunarInfoCardDark]}>
+                        <Text style={[styles.lunarInfoYear, isDarkMode && styles.textPrimaryDark]}>
+                            {lunarInfo.yearInfo}
+                        </Text>
+                        <Text style={[styles.lunarInfoDate, isDarkMode && styles.textSecondaryDark]}>
+                            {lunarInfo.monthInfo}
+                            {lunarInfo.holidays.length > 0 && ` · ${lunarInfo.holidays.join(' ')}`}
+                        </Text>
+                    </View>
+                )}
+
                 {viewMode === 'day' ? (
                     <View style={[styles.dayNavRow, isDarkMode && styles.dayNavRowDark]}>
                         <TouchableOpacity
@@ -344,9 +439,11 @@ const HomeScreen = () => {
                                 上一天
                             </Text>
                         </TouchableOpacity>
-                        <Text style={[styles.dayNavTitle, isDarkMode && styles.textPrimaryDark]}>
-                            {selectedDate}
-                        </Text>
+                        <View style={styles.dayNavTitleContainer}>
+                            <Text style={[styles.dayNavTitle, isDarkMode && styles.textPrimaryDark]}>
+                                {selectedDate}
+                            </Text>
+                        </View>
                         <TouchableOpacity
                             onPress={() => shiftSelectedDate(1)}
                             accessibilityRole="button"
@@ -373,6 +470,8 @@ const HomeScreen = () => {
                             onDayPress={onDayPress}
                             markedDates={markedDates}
                             theme={calendarTheme}
+                            dayComponent={renderDay}
+                            hideExtraDays={false}
                         />
                     </View>
                 )}
@@ -955,6 +1054,113 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 14,
         lineHeight: 18,
+    },
+
+    // 农历信息卡片样式
+    lunarInfoCard: {
+        marginHorizontal: 12,
+        marginBottom: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000000',
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    lunarInfoCardDark: {
+        backgroundColor: '#141418',
+    },
+    lunarInfoYear: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    lunarInfoDate: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+
+    // 日期导航标题容器
+    dayNavTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+
+    // 自定义日期单元格样式
+    dayContainer: {
+        width: 44,
+        height: 52,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 8,
+    },
+    dayContainerSelected: {
+        backgroundColor: '#2196F3',
+    },
+    dayContainerToday: {
+        backgroundColor: 'rgba(33, 150, 243, 0.15)',
+    },
+    dayText: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#111827',
+        marginBottom: 2,
+    },
+    dayTextDark: {
+        color: '#E5E7EB',
+    },
+    dayTextSelected: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
+    dayTextToday: {
+        color: '#2196F3',
+        fontWeight: '600',
+    },
+    dayTextDisabled: {
+        color: '#D1D5DB',
+    },
+    dayTextDisabledDark: {
+        color: '#52525B',
+    },
+    lunarText: {
+        fontSize: 10,
+        color: '#9CA3AF',
+    },
+    lunarTextDark: {
+        color: '#71717A',
+    },
+    lunarTextSelected: {
+        color: 'rgba(255, 255, 255, 0.85)',
+    },
+    lunarTextToday: {
+        color: '#2196F3',
+    },
+    lunarTextDisabled: {
+        color: '#D1D5DB',
+    },
+    lunarTextDisabledDark: {
+        color: '#3F3F46',
+    },
+    lunarTextHoliday: {
+        color: '#EF4444',
+    },
+    lunarTextSolarTerm: {
+        color: '#10B981',
+    },
+    eventDot: {
+        position: 'absolute',
+        bottom: 4,
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#2196F3',
     },
 });
 
